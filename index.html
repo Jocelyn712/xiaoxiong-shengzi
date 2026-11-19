@@ -141,16 +141,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .sheet{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 .cellpair{display:flex;align-items:center;gap:7px}
 .cellpair .zb-only{font-size:32px;color:var(--muted)}
-.gridcell{position:relative;width:164px;height:164px;max-width:46vw;max-height:46vw;
-  border:2px solid var(--line);border-radius:14px;background-color:var(--surface2);
-  background-image:repeating-linear-gradient(to bottom,var(--line) 0 7px,transparent 7px 14px),
-                   repeating-linear-gradient(to right,var(--line) 0 7px,transparent 7px 14px);
-  background-size:1.5px 100%,100% 1.5px;background-position:50% 0,0 50%;background-repeat:no-repeat;
-  touch-action:none}
-.gridcell.done{border-color:var(--accent);background-color:var(--accent-soft);animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
-.gridcell .hw{position:absolute;inset:0}
-.gridcell .hw svg{width:100%;height:100%;display:block}
-.strokecount{position:absolute;right:5px;bottom:3px;font-size:11px;font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums}
+.gridcell{position:relative;width:164px;height:164px;max-width:46vw;max-height:46vw;border-radius:14px}
+.gridcell canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:14px}
+.gridcell canvas.ink{cursor:crosshair}
+.gridcell.done{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
 
 .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .btn{border:2px solid var(--line);background:var(--surface2);border-radius:999px;padding:11px 18px;font-size:14px;font-weight:900;box-shadow:var(--shadow);transition:transform .12s}
@@ -223,7 +217,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
       </button>
       <button class="mode" data-mode="write">
         <span class="ico">✏️</span>
-        <span class="d"><span class="t">第三關　筆順練習</span>跟著一筆一筆寫，寫錯會提示</span>
+        <span class="d"><span class="t">第三關　寫寫看</span>在田字格裡描寫，再從空白默寫</span>
         <span class="go">›</span>
       </button>
     </div>
@@ -240,16 +234,13 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 
     <p class="foot" style="margin-top:16px">
       生字與圈詞取自教育部教育百科「生字詞彙表」113 學年度・二年級・國語・康軒版・第八課<br>
-      筆順資料取自開源資料集 Make Me a Hanzi，<b>非教育部標準筆順</b>，少數字可能與課本不同<br>
-      權威筆順請查<a href="https://stroke-order.learningweb.moe.edu.tw/" target="_blank" rel="noopener">教育部常用國字標準字體筆順學習網</a>
+      例句與例句注音為自行編寫標註，非課本原文
     </p>
   </div>
 
   <div id="stage" class="hide"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.1/dist/hanzi-writer.min.js"></script>
-<script src="stroke-data.js"></script>
 <script>
 /* ---------- 題庫 ---------- */
 var CHARS=[
@@ -394,7 +385,7 @@ var stage=$('#stage'),home=$('#home'),bar=$('#bar'),barwrap=$('#barwrap'),
     scoreEl=$('#score'),backBtn=$('#back'),topTitle=$('#toptitle'),soundBtn=$('#sound');
 var G={mode:null,qs:[],i:0,gain:0,retry:[],round:0,missed:{}};
 var MAXROUND=3;
-var MODENAME={pick:'第一關　找字',build:'第二關　拼圈詞',write:'第三關　筆順練習'};
+var MODENAME={pick:'第一關　找字',build:'第二關　拼圈詞',write:'第三關　寫寫看'};
 
 function renderScore(popIt){
   scoreEl.textContent='🍯 '+save.honey;
@@ -569,7 +560,8 @@ function renderBuild(){
   stage.appendChild(card);
 }
 
-/* ---------- 第三關：筆順練習 ---------- */
+/* ---------- 第三關：寫寫看（田字格描紅／空白默寫，不判筆順） ---------- */
+var showGuide=true;
 function renderWrite(){
   var q=G.qs[G.i],chars=q.c.split('');
   stage.innerHTML='';
@@ -578,106 +570,104 @@ function renderWrite(){
   card.appendChild(el('p','qhint',esc(q.t)));
 
   var sheet=el('div','sheet'),zs=q.z.split(/\s+/);
-  var cells=[],missing=[],libOk=(typeof HanziWriter!=='undefined');
+  var cells=[];
   chars.forEach(function(ch,i){
     var pair=el('div','cellpair');
     var box=el('div','gridcell');
-    var holder=el('div','hw');
-    box.appendChild(holder);
-    box.appendChild(el('div','strokecount',(window.STROKES&&STROKES[ch])?STROKES[ch].strokes.length+' 畫':''));
+    var g=el('canvas','guide'),k=el('canvas','ink');
+    box.appendChild(g);box.appendChild(k);
     pair.appendChild(box);
     pair.insertAdjacentHTML('beforeend',zbOnly(zs[i]||''));
     sheet.appendChild(pair);
-    if(!libOk||!window.STROKES||!STROKES[ch]){missing.push(ch);cells.push(null);return}
-    cells.push({ch:ch,box:box,holder:holder,writer:null,done:false,awarded:false});
+    cells.push({ink:k,guide:g,ch:ch,box:box,drew:false});
   });
   card.appendChild(sheet);
 
-  var fbBox=el('div','fb no','');
-  card.appendChild(fbBox);
-
   var tools=el('div','tools');
-  var bDemo=el('button','btn ghost','👀 看一次筆順');
-  var bAgain=el('button','btn ghost','🔄 重寫');
+  var bGuide=el('button','btn ghost',showGuide?'🙈 把字藏起來':'👀 顯示描寫底字');
+  var bClear=el('button','btn ghost','🧽 擦掉重寫');
   var queued=G.retry.indexOf(q)>=0;
   var bRetry=el('button','btn ghost',queued?'✅ 已排進再練一次':'🔁 這個要再練一次');
   var bNext=el('button','btn main full',G.i===G.qs.length-1?'寫完了 →':'下一個 →');
-  tools.appendChild(bDemo);tools.appendChild(bAgain);tools.appendChild(bRetry);tools.appendChild(bNext);
+  tools.appendChild(bGuide);tools.appendChild(bClear);tools.appendChild(bRetry);tools.appendChild(bNext);
   card.appendChild(tools);
-  card.appendChild(el('p','qhint','用手指或筆在格子裡一筆一筆寫。寫錯不會扣蜂蜜，連錯兩次會把那一筆畫給你看。'));
+  card.appendChild(el('p','qhint','先照著淡淡的字描一次，再按「把字藏起來」從空白自己默寫一次。'));
   stage.appendChild(card);
 
-  if(!libOk){
-    fbBox.className='fb no on';
-    fbBox.innerHTML='筆順元件沒有載入成功（可能是網路問題）。<small>重新整理頁面試試看，其他兩關不受影響。</small>';
-    bDemo.disabled=bAgain.disabled=true;
-  }else if(missing.length){
-    fbBox.className='fb no on';
-    fbBox.innerHTML='這個字沒有筆順資料：'+esc(missing.join('、'))+'，可以直接按「下一個」。';
-  }
+  cells.forEach(function(o){setupCanvas(o)});
 
-  function makeWriter(cell){
-    var w=HanziWriter.create(cell.holder,cell.ch,{
-      width:cell.holder.clientWidth||164,
-      height:cell.holder.clientHeight||164,
-      padding:8,
-      showCharacter:false,
-      showOutline:true,
-      showHintAfterMisses:2,
-      highlightOnComplete:true,
-      strokeAnimationSpeed:1,
-      delayBetweenStrokes:180,
-      strokeColor:cssVar('--ink')||'#1C3025',
-      outlineColor:cssVar('--line')||'#D4E2D0',
-      drawingColor:cssVar('--accent')||'#2E7D4F',
-      highlightColor:cssVar('--honey')||'#E09A2E',
-      charDataLoader:function(c,onComplete){onComplete(STROKES[c])}
-    });
-    cell.writer=w;
-    return w;
-  }
-  function quiz(cell){
-    cell.done=false;cell.box.classList.remove('done');
-    cell.writer.quiz({
-      showHintAfterMisses:2,
-      onCorrectStroke:function(){sfxStroke()},
-      onMistake:function(d){
-        sfxOops();
-        fbBox.className='fb no on';
-        fbBox.innerHTML='第 '+(d.strokeNum+1)+' 筆再試試看。'+
-          (d.mistakesOnStroke>=2?'<small>小熊把這一筆畫給你看了，跟著描一次。</small>':'');
-      },
-      onComplete:function(){
-        cell.done=true;cell.box.classList.add('done');
-        fbBox.className='fb ok on';
-        fbBox.innerHTML='🎉 「'+esc(cell.ch)+'」寫好了！';
-        sfxDone();
-        /* 第一次寫完 +3，重寫再給 +1 —— 多練有獎勵，但不會刷爆森林 */
-        addHoney(cell.awarded?1:3);cell.awarded=true;
-        var live=cells.filter(Boolean);
-        if(live.length&&live.every(function(c){return c.done})){
-          fbBox.innerHTML='🎉 全部寫好了！'+(chars.length>1?'「'+esc(q.c)+'」':'');
-          bNext.focus();
-        }
-      }
-    });
-  }
-  cells.forEach(function(cell){ if(cell){makeWriter(cell);quiz(cell)} });
-
-  bDemo.addEventListener('click',function(){
-    fbBox.className='fb no on';fbBox.innerHTML='看好囉，一筆一筆來。';
-    cells.forEach(function(cell){ if(cell)cell.writer.animateCharacter({onComplete:function(){quiz(cell)}}) });
+  bGuide.addEventListener('click',function(){
+    showGuide=!showGuide;bGuide.textContent=showGuide?'🙈 把字藏起來':'👀 顯示描寫底字';
+    cells.forEach(function(o){drawGuide(o)});
   });
-  bAgain.addEventListener('click',function(){
-    fbBox.className='fb no';fbBox.innerHTML='';
-    cells.forEach(function(cell){ if(cell)quiz(cell) });
+  bClear.addEventListener('click',function(){
+    cells.forEach(function(o){
+      var c=o.ink.getContext('2d');c.clearRect(0,0,o.ink.width,o.ink.height);
+      o.drew=false;o.box.classList.remove('done');
+    });
   });
   bRetry.addEventListener('click',function(){
     var k=G.retry.indexOf(q);
     if(k>=0){G.retry.splice(k,1);delete G.missed[q.c];bRetry.textContent='🔁 這個要再練一次'}
     else{G.retry.push(q);G.missed[q.c]=q.z;bRetry.textContent='✅ 已排進再練一次'}
   });
-  bNext.addEventListener('click',function(){G.i++;setBar();render()});
+  var awarded=false;
+  bNext.addEventListener('click',function(){
+    if(!awarded){                       /* 有真的動筆才給蜂蜜，一個字 2 罐 */
+      var n=cells.filter(function(o){return o.drew}).length;
+      if(n){sfxDone();addHoney(n*2)}
+      awarded=true;
+    }
+    G.i++;setBar();render();
+  });
+}
+
+function setupCanvas(o){
+  var box=o.ink.parentNode;
+  function size(){
+    var r=box.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);
+    [o.guide,o.ink].forEach(function(cv){cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr)});
+    drawGuide(o);
+  }
+  size();
+  var ctx=o.ink.getContext('2d'),drawing=false;
+  function pt(e){var r=o.ink.getBoundingClientRect();
+    return[(e.clientX-r.left)/r.width*o.ink.width,(e.clientY-r.top)/r.height*o.ink.height]}
+  o.ink.addEventListener('pointerdown',function(e){
+    e.preventDefault();drawing=true;o.ink.setPointerCapture(e.pointerId);
+    if(!o.drew){o.drew=true;o.box.classList.add('done');sfxStroke()}
+    var p=pt(e);ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.lineWidth=Math.max(7,o.ink.width/22);
+    ctx.strokeStyle=cssVar('--ink')||'#222';
+    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+.1,p[1]+.1);ctx.stroke();
+  });
+  o.ink.addEventListener('pointermove',function(e){
+    if(!drawing)return;e.preventDefault();var p=pt(e);ctx.lineTo(p[0],p[1]);ctx.stroke();
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(t){
+    o.ink.addEventListener(t,function(){drawing=false});
+  });
+  window.addEventListener('resize',size);
+}
+
+function drawGuide(o){
+  var cv=o.guide,c=cv.getContext('2d'),W=cv.width,H=cv.height;
+  c.clearRect(0,0,W,H);
+  c.fillStyle=cssVar('--surface2')||'#f6faf4';
+  c.fillRect(0,0,W,H);
+  c.strokeStyle=cssVar('--line')||'#d4e2d0';
+  c.lineWidth=Math.max(2,W/60);c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth);
+  c.save();c.setLineDash([W/26,W/26]);c.lineWidth=Math.max(1,W/110);
+  c.beginPath();c.moveTo(W/2,0);c.lineTo(W/2,H);c.moveTo(0,H/2);c.lineTo(W,H/2);c.stroke();
+  c.restore();
+  if(showGuide){
+    c.globalAlpha=.3;
+    c.fillStyle=cssVar('--muted')||'#5e7465';
+    c.font='700 '+Math.round(H*.74)+'px '+cssVar('--kai');
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(o.ch,W/2,H*.53);
+    c.globalAlpha=1;
+  }
 }
 
 /* ---------- 回饋 / 下一題 ---------- */
