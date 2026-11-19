@@ -89,6 +89,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--honey);out
 .zb-col{display:flex;flex-direction:column;align-items:center;line-height:1.02}
 .zb-col i{font-style:normal;display:block}
 .zb-col i.zb-l{line-height:.7}
+/* 直排時「ㄧ」要寫成直筆（丨），橫排才是「一」 */
+.zb-col i.yi{transform:rotate(90deg);margin:.14em 0}
 .zb-t{margin-left:.06em;padding-bottom:.04em;white-space:nowrap}
 .zb-only .zb-c{display:none}
 .zb-only .zb-r{font-size:1em;margin-left:0}
@@ -97,7 +99,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--honey);out
 .qtag{display:inline-block;font-size:12px;font-weight:900;color:var(--accent);background:var(--accent-soft);padding:5px 11px;border-radius:999px;letter-spacing:.05em}
 .prompt{display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-size:42px;font-weight:700;line-height:1.2;margin:18px 0 2px}
 .prompt .blank{color:var(--honey);border-bottom:5px solid var(--honey);padding:0 4px}
-.sent{display:flex;flex-wrap:wrap;align-items:center;gap:9px;font-size:26px;line-height:1.2;margin:16px 0 4px;color:var(--ink)}
+.sent{display:flex;flex-wrap:wrap;align-items:center;gap:11px;font-size:31px;line-height:1.25;margin:16px 0 6px;color:var(--ink)}
 .sent .punc{align-self:flex-end;padding-bottom:.08em;font-family:var(--kai)}
 .sent .blank2{color:var(--honey);border-bottom:4px solid var(--honey);padding:0 3px;font-family:var(--kai)}
 .qhint{color:var(--muted);font-size:14px;line-height:1.7;margin:10px 0 0}
@@ -293,7 +295,9 @@ function zbCol(z){
   var p=zbParts(z);
   return '<span class="zb-r"><span class="zb-col">'+
     (p.light?'<i class="zb-l">˙</i>':'')+
-    p.body.split('').map(function(s){return '<i>'+esc(s)+'</i>'}).join('')+
+    p.body.split('').map(function(s){
+      return '<i'+(s==='ㄧ'?' class="yi"':'')+'>'+esc(s)+'</i>';
+    }).join('')+
     '</span>'+(p.tone?'<span class="zb-t">'+esc(p.tone)+'</span>':'')+'</span>';
 }
 /* chHtml 由呼叫端自行跳脫，因為挖空格要塞 <span class="blank"> */
