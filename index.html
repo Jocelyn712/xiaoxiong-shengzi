@@ -47,10 +47,11 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .zb{display:inline-flex;align-items:center;line-height:1;vertical-align:middle}
 .zb-c{font-family:var(--kai);font-weight:700;line-height:1;white-space:nowrap}
 .zb-r{display:flex;align-items:flex-end;font-size:.42em;line-height:1;margin-left:.22em;font-family:var(--font);font-weight:500}
-.zb-col{display:flex;flex-direction:column;align-items:center;line-height:1.02}
+.zb-r.n3{font-size:.36em}        /* 三個符號會比國字高，縮一點讓注音欄貼齊字高 */
+.zb-col{display:flex;flex-direction:column;align-items:center;line-height:.96}
 .zb-col i{font-style:normal;display:block}
 .zb-col i.zb-l{line-height:.7}
-.zb-col i.yi{transform:rotate(90deg);margin:.14em 0}  /* 直排的ㄧ要寫成直筆 */
+.zb-col i.yi{transform:rotate(90deg)}  /* 直排的ㄧ要寫成直筆，旋轉後不需要額外邊距 */
 .zb-t{margin-left:.06em;padding-bottom:.04em;white-space:nowrap}
 .zb-only .zb-c{display:none}
 .zb-only .zb-r{font-size:1em;margin-left:0}
@@ -321,7 +322,7 @@ function zbParts(z){
 }
 function zbCol(z){
   var p=zbParts(z);
-  return '<span class="zb-r"><span class="zb-col">'+
+  return '<span class="zb-r'+(p.body.length>=3?' n3':'')+'"><span class="zb-col">'+
     (p.light?'<i class="zb-l">˙</i>':'')+
     p.body.split('').map(function(s){
       return '<i'+(s==='ㄧ'?' class="yi"':'')+'>'+esc(s)+'</i>';
