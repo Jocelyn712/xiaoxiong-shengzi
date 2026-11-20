@@ -1,0 +1,11 @@
+{
+  "name": "小熊的生字森林",
+  "short_name": "生字森林",
+  "description": "康軒版二年級國語生字與圈詞的複習遊戲",
+  "lang": "zh-Hant-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF3EA",
+  "theme_color": "#2E7D4F"
+}
