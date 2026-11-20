@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小熊的生字森林</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -5,13 +10,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <style>
 /* 版面：單欄卡片置中。森林綠＋蜂蜜黃，圓角厚實，低年級看的大字。
-   設計原則：只有正向累積 —— 不限時、不倒數、答錯不扣任何東西。 */
+   設計原則：只會往前、看得到進度 —— 不限時、不倒數、答錯不扣任何東西，小路上只前進不後退。
+   唯一有壓力的是最後的大考驗（三顆愛心），用完了隨時可以再挑戰。 */
 :root{
   --bg:#EDF3EA; --surface:#FFFFFF; --surface2:#F6FAF4;
   --ink:#1C3025; --muted:#5E7465; --line:#D4E2D0;
   --accent:#2E7D4F; --accent-soft:#D8EEDF;
   --honey:#E09A2E; --honey-soft:#FBEBCF;
   --berry:#CE524A; --berry-soft:#FADEDB;
+  --map1:#DCEFD3; --map2:#C9E4BE; --road:#D9C38C; --road2:#F2E6C4; --stone:#C9B27A;
   --shadow:0 2px 0 rgba(28,48,37,.10), 0 10px 24px -14px rgba(28,48,37,.45);
   --r:18px;
   --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
@@ -23,6 +30,7 @@
   --accent:#5FBF84; --accent-soft:#1E3A2A;
   --honey:#F0B45C; --honey-soft:#3A2E18;
   --berry:#E8776E; --berry-soft:#3D2320;
+  --map1:#1C2E22; --map2:#16251B; --road:#5E4E30; --road2:#46402E; --stone:#7A6A45;
   --shadow:0 2px 0 rgba(0,0,0,.3), 0 10px 24px -14px rgba(0,0,0,.8);
   color-scheme:dark;
 }}
@@ -32,16 +40,18 @@
   --accent:#5FBF84; --accent-soft:#1E3A2A;
   --honey:#F0B45C; --honey-soft:#3A2E18;
   --berry:#E8776E; --berry-soft:#3D2320;
+  --map1:#1C2E22; --map2:#16251B; --road:#5E4E30; --road2:#46402E; --stone:#7A6A45;
   --shadow:0 2px 0 rgba(0,0,0,.3), 0 10px 24px -14px rgba(0,0,0,.8);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
 .wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px;display:flex;flex-direction:column;gap:18px}
 h1,h2,h3{margin:0;text-wrap:balance}
-button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
 button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-radius:12px}
-.hide{display:none}
+.hide{display:none!important}
+.col{display:flex;flex-direction:column;gap:18px}
 
 /* 注音：直排在國字右邊。聲調貼最後一個符號右側，輕聲的點在最上面。 */
 .zb{display:inline-flex;align-items:center;line-height:1;vertical-align:middle}
@@ -57,41 +67,100 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 
 /* 頂部 */
 .top{display:flex;align-items:center;gap:8px;min-height:44px}
-.back{display:none;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:7px 14px 7px 10px;font-size:14px;font-weight:700;box-shadow:var(--shadow)}
+.back{display:none;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:7px 14px 7px 10px;font-size:14px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
 .back.on{display:inline-flex}
-.top .title{font-size:15px;font-weight:900}
+.top .title{font-size:15px;font-weight:900;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .top .spacer{flex:1}
 .iconbtn{background:var(--surface);border:2px solid var(--line);border-radius:999px;width:38px;height:38px;font-size:16px;box-shadow:var(--shadow);flex:none}
 .scorepill{background:var(--honey-soft);border-radius:999px;padding:8px 14px;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
-.scorepill.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+.scorepill.pop,.hearts.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+.hearts{font-size:17px;letter-spacing:1px;white-space:nowrap}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.28)}100%{transform:scale(1)}}
 .bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--honey));border-radius:999px;transition:width .35s cubic-bezier(.3,1.2,.5,1)}
 
-/* 首頁 */
+/* 地圖首頁 */
 .hero{background:var(--surface);border:2px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:24px 20px 18px;text-align:center}
-.hero .bear{font-size:60px;line-height:1;display:block;margin-bottom:6px}
 .hero .ver{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:900;padding:5px 12px;border-radius:999px}
 .hero h1{font-size:30px;font-weight:900;margin:10px 0 6px}
 .hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
+/* 地圖：彎彎的小路、站點、風景（座標用 viewBox 單位，--u＝地圖寬度的 1%） */
+.mapcard{position:relative;background:radial-gradient(circle at 18% 22%,rgba(255,255,255,.28) 0 9%,transparent 10%),radial-gradient(circle at 82% 64%,rgba(255,255,255,.22) 0 8%,transparent 9%),linear-gradient(180deg,var(--map1),var(--map2));border:2px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:10px 8px;overflow:hidden}
+.world,.trail{position:relative;width:100%;max-width:440px;margin:0 auto;--u:3.4px}
+.world svg,.trail svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.road{fill:none;stroke:var(--road);stroke-linecap:round;stroke-linejoin:round}
+.road2{fill:none;stroke:var(--road2);stroke-linecap:round;stroke-linejoin:round}
+.roaddash{fill:none;stroke:var(--road);stroke-linecap:round;stroke-dasharray:.1 3.2}
+.deco{position:absolute;transform:translate(-50%,-50%);font-size:calc(var(--u)*7);line-height:1;pointer-events:none;user-select:none}
+.stop{position:absolute;transform:translate(-50%,-50%);width:calc(var(--u)*17);height:calc(var(--u)*17);padding:0;z-index:2}
+.stop .disc{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;font-size:calc(var(--u)*8.5);line-height:1;
+  background:radial-gradient(closest-side,var(--surface) 76%,transparent 78%),conic-gradient(var(--accent) var(--p,0%),var(--line) 0);
+  box-shadow:0 calc(var(--u)*.9) 0 rgba(0,0,0,.16);transition:transform .12s;position:relative}
+.stop.done .disc{background:radial-gradient(closest-side,var(--honey-soft) 76%,transparent 78%),conic-gradient(var(--honey) 100%,var(--honey) 0)}
+.stop.done .disc::after{content:"🏅";position:absolute;right:calc(var(--u)*-2);bottom:calc(var(--u)*-1.5);font-size:calc(var(--u)*6.5)}
+.stop .lbl{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:2px;background:var(--surface);border-radius:12px;padding:5px 10px;box-shadow:var(--shadow);white-space:nowrap;line-height:1.3}
+.stop .lbl.r{left:calc(100% + var(--u)*2.5);text-align:left}
+.stop .lbl.l{right:calc(100% + var(--u)*2.5);text-align:right}
+.stop .lbl b{font-size:15px;font-weight:900;color:var(--ink)}
+.stop .lbl i{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}
+.stop.stale .disc::before{content:"🌿";position:absolute;left:calc(var(--u)*-2.5);top:calc(var(--u)*-2.5);font-size:calc(var(--u)*7)}
+.stop.flag{width:calc(var(--u)*11);height:calc(var(--u)*11);cursor:default}
+.stop.flag .disc{background:var(--surface);font-size:calc(var(--u)*6)}
+.stop.castle{width:calc(var(--u)*22);height:calc(var(--u)*22)}
+.stop.castle .disc{font-size:calc(var(--u)*12);background:radial-gradient(closest-side,var(--honey-soft) 76%,transparent 78%),conic-gradient(var(--honey) 100%,var(--honey) 0)}
+.stop.castle .lbl{white-space:normal;width:max-content;max-width:calc(var(--u)*36)}
+.stop.castle.mid{width:calc(var(--u)*19);height:calc(var(--u)*19)}
+.stop.castle.mid .disc{font-size:calc(var(--u)*10)}
+.stop.castle.locked{cursor:default}
+.stop.castle.locked .disc{background:var(--surface2);filter:grayscale(1)}
+.wbear{position:absolute;transform:translate(-50%,-100%);font-size:calc(var(--u)*9);line-height:1;z-index:3;pointer-events:none;animation:idle 1.6s ease-in-out infinite;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))}
+.deco.friend{font-size:calc(var(--u)*8);animation:idle 2.2s ease-in-out infinite;filter:drop-shadow(0 3px 2px rgba(0,0,0,.2))}
+@keyframes idle{0%,100%{margin-top:0}50%{margin-top:calc(var(--u)*-1.6)}}
 
-/* 我的森林 */
-.forest{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px}
-.forest .fh{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
-.forest .fh b{font-size:15px;font-weight:900}
-.forest .fh span{font-size:13px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
-.fground{background:var(--surface2);border-radius:14px;padding:14px 12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:62px;align-items:center}
-.fground span{font-size:28px;line-height:1;animation:grow .5s cubic-bezier(.3,1.6,.5,1)}
-.fground .soon{font-size:28px;opacity:.22;filter:grayscale(1)}
-@keyframes grow{0%{transform:scale(0) translateY(8px)}100%{transform:scale(1) translateY(0)}}
-.fnext{margin:10px 0 0;font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+.shelf{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px}
+.shelf .fh{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+.shelf .fh b{font-size:15px;font-weight:900}
+.shelf .fh span{font-size:13px;color:var(--muted);margin-left:auto}
+.medals{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-end}
+.medal{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:58px}
+.medal b{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:var(--surface2);border:2px dashed var(--line);filter:grayscale(1);opacity:.45}
+.medal i{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}
+.medal.on b{filter:none;opacity:1;border:3px solid var(--honey);background:var(--honey-soft)}
+.medal.big b{width:72px;height:72px;font-size:40px}
+.medal.cup b{width:62px;height:62px;font-size:32px}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.ware{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.ware .wico{font-size:48px;line-height:1.1}
+.ware b{font-size:15px;font-weight:900}
+.ware.locked .wico{filter:grayscale(.7);opacity:.6}
+.ware.using{border-color:var(--honey);background:linear-gradient(180deg,var(--surface),var(--honey-soft))}
+.ware .btn{width:100%;padding:9px 6px;font-size:13px}
+.scorepill{cursor:pointer}
+.prize{margin:12px 0 0;text-align:center;font-size:14px;font-weight:700;line-height:1.7;background:var(--honey-soft);border-radius:12px;padding:10px 12px}
+
+/* 每一課的小路 */
+.bhead{display:flex;align-items:center;gap:12px}
+.bhead .nico{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:var(--accent-soft)}
+.bhead h2{font-size:21px;font-weight:900}
+.bhead p{margin:3px 0 0;font-size:14px;color:var(--muted);line-height:1.6}
+.stone{position:absolute;transform:translate(-50%,-50%);width:calc(var(--u)*8.6);height:calc(var(--u)*8.6);border-radius:50%;background:var(--surface);border:calc(var(--u)*.6) solid var(--stone);display:grid;place-items:center;font-size:calc(var(--u)*3.3);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;box-shadow:0 calc(var(--u)*.6) 0 rgba(0,0,0,.14);transition:background .3s,border-color .3s;z-index:1}
+.stone.past{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.stone.pot{font-size:calc(var(--u)*4.8)}
+.stone.pot.past{filter:grayscale(1);opacity:.55}
+.stone.start{width:calc(var(--u)*11);height:calc(var(--u)*11);font-size:calc(var(--u)*5.5)}
+.stone.goal{width:calc(var(--u)*15);height:calc(var(--u)*15);font-size:calc(var(--u)*9);border-color:var(--honey);background:var(--honey-soft)}
+.token{position:absolute;z-index:3;transform:translate(-50%,-62%);transition-property:left,top;transition-timing-function:cubic-bezier(.4,0,.3,1);pointer-events:none}
+.token span{display:grid;place-items:center;width:calc(var(--u)*11);height:calc(var(--u)*11);border-radius:50%;background:var(--surface);border:calc(var(--u)*.7) solid var(--honey);box-shadow:0 4px 10px -3px rgba(0,0,0,.45);font-size:calc(var(--u)*7);line-height:1}
+.token.hop span{animation:hop .3s ease-out}
+@keyframes hop{0%{transform:translateY(0)}45%{transform:translateY(-34%) scale(1.06)}100%{transform:translateY(0)}}
+.bubble{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);background:var(--ink);color:var(--surface);font-weight:900;font-size:20px;padding:10px 18px;border-radius:999px;z-index:5;pointer-events:none;animation:bubble 1.1s ease-out forwards;white-space:nowrap}
+@keyframes bubble{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%)}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:10px 0 4px;font-size:13px;color:var(--muted);line-height:1.6}
 
 .modes{display:flex;flex-direction:column;gap:12px}
 .mode{display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;transition:transform .12s,border-color .12s}
-.mode:hover{transform:translateY(-2px);border-color:var(--accent)}
 .mode .ico{flex:none;width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:26px;background:var(--accent-soft)}
 .mode:nth-child(2) .ico{background:var(--honey-soft)}
-.mode:nth-child(3) .ico{background:var(--berry-soft)}
 .mode .t{display:block;font-size:18px;font-weight:900;color:var(--ink);margin-bottom:3px}
 .mode .d{font-size:13px;color:var(--muted);line-height:1.6;min-width:0;flex:1}
 .mode .go{flex:none;font-size:20px;color:var(--muted)}
@@ -108,6 +177,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 /* 題目 */
 .card{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
 .qtag{display:inline-block;font-size:12px;font-weight:900;color:var(--accent);background:var(--accent-soft);padding:5px 11px;border-radius:999px}
+.qtag.final{color:var(--ink);background:var(--honey-soft)}
 .prompt{display:flex;flex-wrap:wrap;align-items:center;gap:14px;font-size:42px;font-weight:700;line-height:1.2;margin:18px 0 2px}
 .prompt .blank{color:var(--honey);border-bottom:5px solid var(--honey);padding:0 4px}
 .sent{display:flex;flex-wrap:wrap;align-items:center;gap:11px;font-size:31px;line-height:1.25;margin:16px 0 6px}
@@ -118,39 +188,39 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .opts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
 @media (max-width:420px){.opts{grid-template-columns:repeat(2,1fr)}}
 .opt{aspect-ratio:1;border:3px solid var(--line);background:var(--surface2);border-radius:16px;font-size:40px;font-family:var(--kai);font-weight:700;display:grid;place-items:center;transition:transform .12s,background .15s,border-color .15s}
-.opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--accent)}
 .opt:disabled{cursor:default}
 .opt.right{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
 .opt.wrong{background:var(--berry-soft);border-color:var(--berry);color:var(--berry);animation:shake .4s}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* 拼圈詞 */
+/* 拼圈詞：字塊可以拖進格子，也可以點（依序填） */
 .slots{display:flex;gap:14px;justify-content:center;margin:20px 0 6px;flex-wrap:wrap}
 .slotpair{display:flex;align-items:center;gap:5px}
 .slotpair .zb-only{font-size:27px;color:var(--muted)}
-.slot{width:76px;height:76px;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:40px;font-family:var(--kai);font-weight:700;background:var(--surface2)}
+.slot{width:76px;height:76px;border:3px dashed var(--line);border-radius:16px;display:grid;place-items:center;font-size:40px;font-family:var(--kai);font-weight:700;background:var(--surface2);transition:border-color .12s,background .12s,transform .12s}
+.slot.hot{border-color:var(--honey);background:var(--honey-soft);transform:scale(1.06)}
 .slot.filled{border-style:solid;border-color:var(--accent);background:var(--accent-soft);animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
 .slot.bad{border-style:solid;border-color:var(--berry);background:var(--berry-soft);color:var(--berry);animation:shake .4s}
 .tray{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:18px}
-.tile{width:64px;height:64px;border:3px solid var(--line);background:var(--surface2);border-radius:14px;font-size:34px;font-family:var(--kai);font-weight:700;display:grid;place-items:center;transition:transform .12s,opacity .2s}
-.tile:hover:not(:disabled){transform:translateY(-3px);border-color:var(--honey)}
-.tile.used{opacity:.22;pointer-events:none}
+.tile{width:64px;height:64px;border:3px solid var(--line);background:var(--surface2);border-radius:14px;font-size:34px;font-family:var(--kai);font-weight:700;display:grid;place-items:center;transition:transform .12s,opacity .2s;touch-action:none;user-select:none;-webkit-user-select:none}
+.tile.lifting{opacity:.3}
+.tile.used{opacity:.18;pointer-events:none}
+.tile.ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;border-color:var(--honey);background:var(--surface);box-shadow:0 12px 24px -8px rgba(0,0,0,.45);transition:none;margin:0}
+.dragtip{text-align:center;font-size:13px;color:var(--muted);margin:10px 0 0}
 
-/* 寫寫看：田字格 + 筆順引導 */
-.sheet{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-.cellpair{display:flex;align-items:center;gap:7px}
-.cellpair .zb-only{font-size:32px;color:var(--muted)}
-.gridcell{position:relative;width:164px;height:164px;max-width:46vw;max-height:46vw;border-radius:14px}
-.gridcell canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:14px}
-.gridcell canvas.ink{cursor:crosshair}
-.gridcell.done{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+/* 滑鼠真的移動過才顯示 hover，避免題目一換新，剛好在游標／手指下的選項亮起來變成提示 */
+@media (hover:hover) and (pointer:fine){
+  body.hov .opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--accent)}
+  body.hov .tile:hover:not(:disabled){transform:translateY(-3px);border-color:var(--honey)}
+  body.hov .mode:hover{transform:translateY(-2px);border-color:var(--accent)}
+  body.hov button.stop:not(:disabled):hover .disc{transform:scale(1.07)}
+  body.hov .btn:hover:not(:disabled){transform:translateY(-2px)}
+}
 
 .tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .btn{border:2px solid var(--line);background:var(--surface2);border-radius:999px;padding:11px 18px;font-size:14px;font-weight:900;box-shadow:var(--shadow);transition:transform .12s}
-.btn:hover{transform:translateY(-2px)}
 .btn.main{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.ghost{box-shadow:none}
+.btn.gold{background:var(--honey);border-color:var(--honey);color:#2a1a00}
 .btn.full{flex:1;text-align:center}
 .btn:disabled{opacity:.45;cursor:default;transform:none}
 
@@ -162,6 +232,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .fb small{display:block;font-weight:500;color:var(--muted);margin-top:5px;font-size:13px;line-height:1.7}
 .fbw{display:inline-flex;gap:7px;vertical-align:middle;font-size:27px;margin:0 4px}
 .fb small .fbw{font-size:22px}
+.stepchip{display:inline-block;margin-left:6px;background:var(--surface);color:var(--accent);border-radius:999px;padding:1px 10px;font-size:13px;font-weight:900;vertical-align:middle}
+@keyframes grow{0%{transform:scale(0) translateY(8px)}100%{transform:scale(1) translateY(0)}}
 
 /* 結算 */
 .done{text-align:center}
@@ -174,81 +246,104 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .misscard{margin:16px 0 18px;background:var(--honey-soft);border-radius:14px;padding:14px}
 .misslab{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.1em;margin-bottom:8px}
 .missrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.missrow span{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font-size:24px;display:inline-flex;gap:7px}
+.missrow>span{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font-size:24px;display:inline-flex;gap:7px}
 .missnote{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.6}
+.loot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:6px 0 16px}
+.loot>span{background:var(--honey-soft);border-radius:999px;padding:8px 14px;font-size:16px;font-weight:900}
+.trophy.small{font-size:84px}
+.trophy{font-size:110px;line-height:1;display:inline-block;animation:shine 2.4s ease-in-out infinite;filter:drop-shadow(0 6px 18px rgba(224,154,46,.55))}
+@keyframes shine{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.08)}}
+.chest{display:inline-block;animation:chest .9s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chest{0%{transform:scale(.2) rotate(-20deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
 .foot{color:var(--muted);font-size:12px;line-height:1.8;text-align:center}
-.foot a{color:var(--accent)}
-</style>
 
+/* 彈出視窗：過關寶箱 */
+.modal{position:fixed;inset:0;background:rgba(15,25,19,.55);display:grid;place-items:center;padding:16px;z-index:40;animation:fade .2s}
+.modal .card{width:100%;max-width:540px;max-height:calc(100dvh - 32px);overflow:auto}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
 <div class="wrap">
   <div class="top">
-    <button class="back" id="back">‹ 回森林</button>
+    <button class="back" id="back">‹ 地圖</button>
     <div class="title" id="toptitle"></div>
     <div class="spacer"></div>
+    <div class="hearts hide" id="hearts"></div>
     <button class="iconbtn" id="sound" title="音效開關" aria-label="音效開關">🔊</button>
-    <div class="scorepill" id="score">🍯 0</div>
+    <button class="scorepill" id="score" title="蜂蜜商店" aria-label="蜂蜜商店">🍯 0</button>
   </div>
   <div class="bar hide" id="barwrap"><i id="bar"></i></div>
 
-  <div id="home">
-    <div class="hero">
-      <span class="bear">🐻</span>
-      <span class="ver">康軒版 二上 ‧ 第八課</span>
-      <h1>小熊的生字森林</h1>
-      <p>〈「聰明」的小熊〉的 20 個生字和 12 個圈詞</p>
-    </div>
-
-    <div class="forest" style="margin-top:18px">
-      <div class="fh"><b>我的森林</b><span id="ftotal"></span></div>
-      <div class="fground" id="fground"></div>
-      <p class="fnext" id="fnext"></p>
-    </div>
-
-    <div class="modes" style="margin-top:18px">
-      <button class="mode" data-mode="pick">
-        <span class="ico">🔍</span>
-        <span class="d"><span class="t">第一關　找字</span>看注音，挑出正確的字</span>
-        <span class="go">›</span>
-      </button>
-      <button class="mode" data-mode="build">
-        <span class="ico">🧩</span>
-        <span class="d"><span class="t">第二關　拼圈詞</span>把字塊照順序排成圈詞</span>
-        <span class="go">›</span>
-      </button>
-      <button class="mode" data-mode="write">
-        <span class="ico">✏️</span>
-        <span class="d"><span class="t">第三關　寫寫看</span>在田字格裡描寫，再從空白默寫</span>
-        <span class="go">›</span>
-      </button>
-    </div>
-
-    <details class="listcard" style="margin-top:18px">
-      <summary>看全部的生字和圈詞</summary>
-      <div class="lab">生字（18 個習寫字）</div>
-      <div class="chips" id="l1"></div>
-      <div class="lab">認讀字（2 個）</div>
-      <div class="chips" id="l2"></div>
-      <div class="lab">圈詞（12 個）</div>
-      <div class="chips" id="l3"></div>
-    </details>
-
-    <p class="foot" style="margin-top:16px">
-      生字與圈詞取自教育部教育百科「生字詞彙表」113 學年度・二年級・國語・康軒版・第八課<br>
-      例句與例句注音為自行編寫標註，非課本原文
-    </p>
-  </div>
-
+  <div id="map" class="col"></div>
+  <div id="board" class="col hide"></div>
   <div id="stage" class="hide"></div>
+  <div id="shop" class="col hide"></div>
 </div>
 
 <script>
-/* ---------- 題庫 ---------- */
-var CHARS=[
+/* ---------- 題庫 ----------
+   每課：icon 地圖上的圖示、deco 小路旁的風景；chars 是生字（read:1 為認讀字），words 是圈詞。
+   字：c 字、z 注音、w 圈詞（＿是要填的位置）、wz 圈詞注音、t 提示、o 三個容易混淆的干擾字
+   詞：w 詞、z 注音、s 例句（＿的數量＝詞的字數）、sz 例句逐字注音（標點不算，＿也要給音）
+   「一」「不」標本調。之後要加第十～十二課，照同樣格式加進 LESSONS 就好。 */
+var LESSONS=[
+{id:7,title:'國王的新衣裳',icon:'👑',deco:['🌷','🧵','🌳','👗','🎺','🌼','🪡','🏯','🚩','🌲'],
+ chars:[
+ {c:'衣',z:'ㄧ',w:'＿服',wz:'ㄧ ˙ㄈㄨ',t:'穿在身上的東西',o:['依','表','哀']},
+ {c:'胖',z:'ㄆㄤˋ',w:'＿子',wz:'ㄆㄤˋ ˙ㄗ',t:'身體肥肥的、圓滾滾的',o:['伴','半','拌']},
+ {c:'針',z:'ㄓㄣ',w:'＿線',wz:'ㄓㄣ ㄒㄧㄢˋ',t:'縫衣服用的細長工具和線',o:['計','釘','汁']},
+ {c:'簡',z:'ㄐㄧㄢˇ',w:'＿單',wz:'ㄐㄧㄢˇ ㄉㄢ',t:'不難、很容易',o:['間','節','筒']},
+ {c:'單',z:'ㄉㄢ',w:'簡＿',wz:'ㄐㄧㄢˇ ㄉㄢ',t:'不複雜，一看就懂',o:['彈','戰','早']},
+ {c:'聰',z:'ㄘㄨㄥ',w:'＿明',wz:'ㄘㄨㄥ ㄇㄧㄥˊ',t:'頭腦好，一學就會',o:['總','窗','蔥']},
+ {c:'明',z:'ㄇㄧㄥˊ',w:'聰＿',wz:'ㄘㄨㄥ ㄇㄧㄥˊ',t:'日和月放在一起，很亮',o:['朋','名','鳴']},
+ {c:'臣',z:'ㄔㄣˊ',w:'大＿',wz:'ㄉㄚˋ ㄔㄣˊ',t:'幫國王做事的官員',o:['巨','陳','匠']},
+ {c:'敢',z:'ㄍㄢˇ',w:'不＿',wz:'ㄅㄨˋ ㄍㄢˇ',t:'沒有勇氣、害怕去做',o:['取','感','趕']},
+ {c:'東',z:'ㄉㄨㄥ',w:'＿西',wz:'ㄉㄨㄥ ˙ㄒㄧ',t:'物品，像鉛筆、書包',o:['車','束','冬']},
+ {c:'西',z:'ㄒㄧ',w:'＿邊',wz:'ㄒㄧ ㄅㄧㄢ',t:'太陽下山的那一邊',o:['四','要','洗']},
+ {c:'直',z:'ㄓˊ',w:'一＿',wz:'ㄧ ㄓˊ',t:'不停的、一路不轉彎',o:['真','植','值']},
+ {c:'棒',z:'ㄅㄤˋ',w:'好＿',wz:'ㄏㄠˇ ㄅㄤˋ',t:'很厲害、很好！',o:['捧','奉','榜']},
+ {c:'街',z:'ㄐㄧㄝ',w:'大＿',wz:'ㄉㄚˋ ㄐㄧㄝ',t:'城市裡寬寬的、熱鬧的路',o:['行','鞋','佳']},
+ {c:'滿',z:'ㄇㄢˇ',w:'＿街',wz:'ㄇㄢˇ ㄐㄧㄝ',t:'整條街都是',o:['慢','兩','漫']},
+ {c:'眼',z:'ㄧㄢˇ',w:'＿睛',wz:'ㄧㄢˇ ㄐㄧㄥ',t:'用來看東西的',o:['跟','根','很']},
+ {c:'哪',z:'ㄋㄚˇ',w:'＿裡',wz:'ㄋㄚˇ ㄌㄧˇ',t:'問「什麼地方？」的時候用',o:['那','娜','挪']},
+ {c:'思',z:'ㄙ',w:'左＿右想',wz:'ㄗㄨㄛˇ ㄙ ㄧㄡˋ ㄒㄧㄤˇ',t:'想了又想',o:['恩','細','怎']},
+ {c:'裳',z:'ㄕㄤ',w:'衣＿',wz:'ㄧ ˙ㄕㄤ',t:'衣服',o:['常','賞','堂'],read:1},
+ {c:'慌',z:'ㄏㄨㄤ',w:'＿張',wz:'ㄏㄨㄤ ㄓㄤ',t:'急急忙忙、很緊張',o:['荒','謊','忙'],read:1}
+ ],
+ words:[
+ {w:'衣裳',z:'ㄧ ˙ㄕㄤ',s:'國王想要穿一件最漂亮的新＿＿。',
+  sz:'ㄍㄨㄛˊ ㄨㄤˊ ㄒㄧㄤˇ ㄧㄠˋ ㄔㄨㄢ ㄧ ㄐㄧㄢˋ ㄗㄨㄟˋ ㄆㄧㄠˋ ˙ㄌㄧㄤ ˙ㄉㄜ ㄒㄧㄣ ㄧ ˙ㄕㄤ'},
+ {w:'簡單',z:'ㄐㄧㄢˇ ㄉㄢ',s:'這一題好＿＿，我一下子就會了。',
+  sz:'ㄓㄜˋ ㄧ ㄊㄧˊ ㄏㄠˇ ㄐㄧㄢˇ ㄉㄢ ㄨㄛˇ ㄧ ㄒㄧㄚˋ ˙ㄗ ㄐㄧㄡˋ ㄏㄨㄟˋ ˙ㄌㄜ'},
+ {w:'聰明',z:'ㄘㄨㄥ ㄇㄧㄥˊ',s:'小狗好＿＿，一學就會握手。',
+  sz:'ㄒㄧㄠˇ ㄍㄡˇ ㄏㄠˇ ㄘㄨㄥ ㄇㄧㄥˊ ㄧ ㄒㄩㄝˊ ㄐㄧㄡˋ ㄏㄨㄟˋ ㄨㄛˋ ㄕㄡˇ'},
+ {w:'大臣',z:'ㄉㄚˋ ㄔㄣˊ',s:'國王請＿＿去看看新衣做得怎麼樣。',
+  sz:'ㄍㄨㄛˊ ㄨㄤˊ ㄑㄧㄥˇ ㄉㄚˋ ㄔㄣˊ ㄑㄩˋ ㄎㄢˋ ˙ㄎㄢ ㄒㄧㄣ ㄧ ㄗㄨㄛˋ ˙ㄉㄜ ㄗㄣˇ ˙ㄇㄜ ㄧㄤˋ'},
+ {w:'不敢',z:'ㄅㄨˋ ㄍㄢˇ',s:'大家都＿＿說實話。',
+  sz:'ㄉㄚˋ ㄐㄧㄚ ㄉㄡ ㄅㄨˋ ㄍㄢˇ ㄕㄨㄛ ㄕˊ ㄏㄨㄚˋ'},
+ {w:'東西',z:'ㄉㄨㄥ ˙ㄒㄧ',s:'我的書包裡裝了好多＿＿。',
+  sz:'ㄨㄛˇ ˙ㄉㄜ ㄕㄨ ㄅㄠ ㄌㄧˇ ㄓㄨㄤ ˙ㄌㄜ ㄏㄠˇ ㄉㄨㄛ ㄉㄨㄥ ˙ㄒㄧ'},
+ {w:'慌張',z:'ㄏㄨㄤ ㄓㄤ',s:'上學快遲到了，弟弟好＿＿。',
+  sz:'ㄕㄤˋ ㄒㄩㄝˊ ㄎㄨㄞˋ ㄔˊ ㄉㄠˋ ˙ㄌㄜ ㄉㄧˋ ˙ㄉㄧ ㄏㄠˇ ㄏㄨㄤ ㄓㄤ'},
+ {w:'一直',z:'ㄧ ㄓˊ',s:'雨從早上＿＿下到晚上。',
+  sz:'ㄩˇ ㄘㄨㄥˊ ㄗㄠˇ ˙ㄕㄤ ㄧ ㄓˊ ㄒㄧㄚˋ ㄉㄠˋ ㄨㄢˇ ˙ㄕㄤ'},
+ {w:'大街',z:'ㄉㄚˋ ㄐㄧㄝ',s:'國王穿著新衣走在＿＿上。',
+  sz:'ㄍㄨㄛˊ ㄨㄤˊ ㄔㄨㄢ ˙ㄓㄜ ㄒㄧㄣ ㄧ ㄗㄡˇ ㄗㄞˋ ㄉㄚˋ ㄐㄧㄝ ㄕㄤˋ'},
+ {w:'滿街',z:'ㄇㄢˇ ㄐㄧㄝ',s:'過年的時候，＿＿都是紅色的燈籠。',
+  sz:'ㄍㄨㄛˋ ㄋㄧㄢˊ ˙ㄉㄜ ㄕˊ ㄏㄡˋ ㄇㄢˇ ㄐㄧㄝ ㄉㄡ ㄕˋ ㄏㄨㄥˊ ㄙㄜˋ ˙ㄉㄜ ㄉㄥ ㄌㄨㄥˊ'},
+ {w:'左思右想',z:'ㄗㄨㄛˇ ㄙ ㄧㄡˋ ㄒㄧㄤˇ',s:'他＿＿＿＿，終於想到好方法。',
+  sz:'ㄊㄚ ㄗㄨㄛˇ ㄙ ㄧㄡˋ ㄒㄧㄤˇ ㄓㄨㄥ ㄩˊ ㄒㄧㄤˇ ㄉㄠˋ ㄏㄠˇ ㄈㄤ ㄈㄚˇ'}
+ ]},
+{id:8,title:'「聰明」的小熊',icon:'🐻',deco:['🌲','🍄','🪨','🌳','🐦','🌼','💧','🌲','🌾','🦋'],
+ chars:[
  {c:'渴',z:'ㄎㄜˇ',w:'口＿',wz:'ㄎㄡˇ ㄎㄜˇ',t:'口乾想喝水',o:['喝','揭','遏']},
  {c:'烏',z:'ㄨ',w:'＿鴉',wz:'ㄨ ㄧㄚ',t:'全身黑色的鳥',o:['鳥','馬','焉']},
  {c:'喝',z:'ㄏㄜ',w:'＿水',wz:'ㄏㄜ ㄕㄨㄟˇ',t:'用嘴巴把水吸進去',o:['渴','歇','揭']},
  {c:'瓶',z:'ㄆㄧㄥˊ',w:'＿子',wz:'ㄆㄧㄥˊ ˙ㄗ',t:'口小肚子大，裝水的容器',o:['並','餅','拼']},
- {c:'法',z:'ㄈㄚˇ',w:'方＿',wz:'ㄈㄤ ㄈㄚˇ',t:'做事情的辦法',o:['去','活','注']},
+ {c:'法',z:'ㄈㄚˇ',w:'方＿',wz:'ㄈㄤ ㄈㄚˇ',t:'要怎麼做才好？想出來的好點子',o:['去','活','注']},
  {c:'森',z:'ㄙㄣ',w:'＿林',wz:'ㄙㄣ ㄌㄧㄣˊ',t:'三個木，樹好多好多',o:['林','焚','淋']},
  {c:'林',z:'ㄌㄧㄣˊ',w:'森＿',wz:'ㄙㄣ ㄌㄧㄣˊ',t:'兩個木，樹木長在一起',o:['森','材','休']},
  {c:'物',z:'ㄨˋ',w:'動＿',wz:'ㄉㄨㄥˋ ㄨˋ',t:'會動的生命，像小熊、烏鴉',o:['牧','特','牛']},
@@ -261,14 +356,11 @@ var CHARS=[
  {c:'難',z:'ㄋㄢˊ',w:'＿道',wz:'ㄋㄢˊ ㄉㄠˋ',t:'不容易；也用來問「莫非」',o:['漢','歡','觀']},
  {c:'忘',z:'ㄨㄤˋ',w:'＿記',wz:'ㄨㄤˋ ㄐㄧˋ',t:'想不起來了',o:['忙','亡','志']},
  {c:'哈',z:'ㄏㄚ',w:'＿哈大笑',wz:'ㄏㄚ ㄏㄚ ㄉㄚˋ ㄒㄧㄠˋ',t:'大聲笑的聲音',o:['給','洽','合']},
- {c:'但',z:'ㄉㄢˋ',w:'＿是',wz:'ㄉㄢˋ ㄕˋ',t:'可是、不過',o:['旦','坦','住']}
-];
-var READ=[
+ {c:'但',z:'ㄉㄢˋ',w:'＿是',wz:'ㄉㄢˋ ㄕˋ',t:'可是、不過',o:['旦','坦','住']},
  {c:'熊',z:'ㄒㄩㄥˊ',w:'小＿',wz:'ㄒㄧㄠˇ ㄒㄩㄥˊ',t:'這一課的主角',o:['能','態','熱'],read:1},
  {c:'鴉',z:'ㄧㄚ',w:'烏＿',wz:'ㄨ ㄧㄚ',t:'會把石頭丟進瓶子的聰明鳥',o:['鴨','牙','鵝'],read:1}
-];
-/* sz：例句逐字注音，標點不算，＿＿兩格也要給音 */
-var WORDS=[
+ ],
+ words:[
  {w:'口渴',z:'ㄎㄡˇ ㄎㄜˇ',s:'在大太陽底下走了一天，他覺得非常＿＿。',
   sz:'ㄗㄞˋ ㄉㄚˋ ㄊㄞˋ ㄧㄤˊ ㄉㄧˇ ㄒㄧㄚˋ ㄗㄡˇ ˙ㄌㄜ ㄧ ㄊㄧㄢ ㄊㄚ ㄐㄩㄝˊ ˙ㄉㄜ ㄈㄟ ㄔㄤˊ ㄎㄡˇ ㄎㄜˇ'},
  {w:'烏鴉',z:'ㄨ ㄧㄚ',s:'＿＿把小石頭丟進瓶子裡，水就升高了。',
@@ -290,25 +382,250 @@ var WORDS=[
  {w:'石頭',z:'ㄕˊ ˙ㄊㄡ',s:'一顆一顆的＿＿掉進水裡。',
   sz:'ㄧ ㄎㄜ ㄧ ㄎㄜ ˙ㄉㄜ ㄕˊ ˙ㄊㄡ ㄉㄧㄠˋ ㄐㄧㄣˋ ㄕㄨㄟˇ ㄌㄧˇ'},
  {w:'難道',z:'ㄋㄢˊ ㄉㄠˋ',s:'＿＿你不會把瓶子拿起來喝嗎？',
-  sz:'ㄋㄢˊ ㄉㄠˋ ㄋㄧˇ ㄅㄨˊ ㄏㄨㄟˋ ㄅㄚˇ ㄆㄧㄥˊ ˙ㄗ ㄋㄚˊ ㄑㄧˇ ㄌㄞˊ ㄏㄜ ˙ㄇㄚ'},
+  sz:'ㄋㄢˊ ㄉㄠˋ ㄋㄧˇ ㄅㄨˋ ㄏㄨㄟˋ ㄅㄚˇ ㄆㄧㄥˊ ˙ㄗ ㄋㄚˊ ㄑㄧˇ ㄌㄞˊ ㄏㄜ ˙ㄇㄚ'},
  {w:'但是',z:'ㄉㄢˋ ㄕˋ',s:'小熊很努力，＿＿忘了動動腦。',
   sz:'ㄒㄧㄠˇ ㄒㄩㄥˊ ㄏㄣˇ ㄋㄨˇ ㄌㄧˋ ㄉㄢˋ ㄕˋ ㄨㄤˋ ˙ㄌㄜ ㄉㄨㄥˋ ㄉㄨㄥˋ ㄋㄠˇ'}
+ ]},
+{id:9,title:'大象有多重？',icon:'🐘',deco:['🌴','⛵','🪨','🌾','🌳','💧','🌿','🐟','🌴','🌾'],
+ chars:[
+ {c:'象',z:'ㄒㄧㄤˋ',w:'大＿',wz:'ㄉㄚˋ ㄒㄧㄤˋ',t:'鼻子長長、耳朵大大的動物',o:['像','家','兔']},
+ {c:'操',z:'ㄘㄠ',w:'早＿',wz:'ㄗㄠˇ ㄘㄠ',t:'早上在學校一起做的運動',o:['澡','燥','噪']},
+ {c:'粗',z:'ㄘㄨ',w:'＿大',wz:'ㄘㄨ ㄉㄚˋ',t:'又大又圓，和「細」相反',o:['組','租','姐']},
+ {c:'腿',z:'ㄊㄨㄟˇ',w:'大＿',wz:'ㄉㄚˋ ㄊㄨㄟˇ',t:'身體下面用來走路的部分',o:['退','服','跟']},
+ {c:'柱',z:'ㄓㄨˋ',w:'＿子',wz:'ㄓㄨˋ ˙ㄗ',t:'撐住屋頂、又粗又直的東西',o:['住','注','主']},
+ {c:'砍',z:'ㄎㄢˇ',w:'＿樹',wz:'ㄎㄢˇ ㄕㄨˋ',t:'用刀子或斧頭用力劈',o:['坎','吹','次']},
+ {c:'幾',z:'ㄐㄧˇ',w:'＿個',wz:'ㄐㄧˇ ˙ㄍㄜ',t:'問數量：有多少個？',o:['機','己','級']},
+ {c:'部',z:'ㄅㄨˋ',w:'＿分',wz:'ㄅㄨˋ ㄈㄣˋ',t:'一整個裡面的其中一些',o:['陪','倍','都']},
+ {c:'搖',z:'ㄧㄠˊ',w:'＿頭',wz:'ㄧㄠˊ ㄊㄡˊ',t:'頭左右動，表示「不要」',o:['謠','遙','採']},
+ {c:'沖',z:'ㄔㄨㄥ',w:'＿水',wz:'ㄔㄨㄥ ㄕㄨㄟˇ',t:'用水澆下去、洗乾淨',o:['中','沙','衝']},
+ {c:'首',z:'ㄕㄡˇ',w:'＿先',wz:'ㄕㄡˇ ㄒㄧㄢ',t:'最先、第一個',o:['道','手','自']},
+ {c:'牽',z:'ㄑㄧㄢ',w:'＿手',wz:'ㄑㄧㄢ ㄕㄡˇ',t:'用手拉著一起走',o:['千','牛','簽']},
+ {c:'沉',z:'ㄔㄣˊ',w:'下＿',wz:'ㄒㄧㄚˋ ㄔㄣˊ',t:'往下掉進水裡',o:['況','沙','陳']},
+ {c:'少',z:'ㄕㄠˇ',w:'多＿',wz:'ㄉㄨㄛ ㄕㄠˇ',t:'數量不多，和「多」相反',o:['小','吵','步']},
+ {c:'沿',z:'ㄧㄢˊ',w:'＿著',wz:'ㄧㄢˊ ˙ㄓㄜ',t:'順著一條路或河邊走',o:['船','鉛','沒']},
+ {c:'然',z:'ㄖㄢˊ',w:'＿後',wz:'ㄖㄢˊ ㄏㄡˋ',t:'接下來、再來',o:['燃','照','熱']},
+ {c:'紀',z:'ㄐㄧˋ',w:'年＿',wz:'ㄋㄧㄢˊ ㄐㄧˋ',t:'年齡，幾歲了',o:['記','起','紅']},
+ {c:'竟',z:'ㄐㄧㄥˋ',w:'＿然',wz:'ㄐㄧㄥˋ ㄖㄢˊ',t:'沒想到、想不到',o:['鏡','境','章']},
+ {c:'曹',z:'ㄘㄠˊ',w:'＿操',wz:'ㄘㄠˊ ㄘㄠ',t:'古代很有名的人，想知道大象多重',o:['曾','書','遭'],read:1},
+ {c:'秤',z:'ㄔㄥˋ',w:'＿重',wz:'ㄔㄥˋ ㄓㄨㄥˋ',t:'量一量東西有多重',o:['平','種','評'],read:1}
+ ],
+ words:[
+ {w:'大象',z:'ㄉㄚˋ ㄒㄧㄤˋ',s:'動物園裡的＿＿用長鼻子喝水。',
+  sz:'ㄉㄨㄥˋ ㄨˋ ㄩㄢˊ ㄌㄧˇ ˙ㄉㄜ ㄉㄚˋ ㄒㄧㄤˋ ㄩㄥˋ ㄔㄤˊ ㄅㄧˊ ˙ㄗ ㄏㄜ ㄕㄨㄟˇ'},
+ {w:'曹操',z:'ㄘㄠˊ ㄘㄠ',s:'＿＿想知道大象有多重。',
+  sz:'ㄘㄠˊ ㄘㄠ ㄒㄧㄤˇ ㄓ ㄉㄠˋ ㄉㄚˋ ㄒㄧㄤˋ ㄧㄡˇ ㄉㄨㄛ ㄓㄨㄥˋ'},
+ {w:'粗大',z:'ㄘㄨ ㄉㄚˋ',s:'大象的腿＿＿得像柱子一樣。',
+  sz:'ㄉㄚˋ ㄒㄧㄤˋ ˙ㄉㄜ ㄊㄨㄟˇ ㄘㄨ ㄉㄚˋ ˙ㄉㄜ ㄒㄧㄤˋ ㄓㄨˋ ˙ㄗ ㄧ ㄧㄤˋ'},
+ {w:'柱子',z:'ㄓㄨˋ ˙ㄗ',s:'大廳裡有四根又高又粗的＿＿。',
+  sz:'ㄉㄚˋ ㄊㄧㄥ ㄌㄧˇ ㄧㄡˇ ㄙˋ ㄍㄣ ㄧㄡˋ ㄍㄠ ㄧㄡˋ ㄘㄨ ˙ㄉㄜ ㄓㄨˋ ˙ㄗ'},
+ {w:'部分',z:'ㄅㄨˋ ㄈㄣˋ',s:'我把一＿＿的餅乾分給妹妹。',
+  sz:'ㄨㄛˇ ㄅㄚˇ ㄧ ㄅㄨˋ ㄈㄣˋ ˙ㄉㄜ ㄅㄧㄥˇ ㄍㄢ ㄈㄣ ㄍㄟˇ ㄇㄟˋ ˙ㄇㄟ'},
+ {w:'搖頭',z:'ㄧㄠˊ ㄊㄡˊ',s:'弟弟不想睡覺，一直＿＿。',
+  sz:'ㄉㄧˋ ˙ㄉㄧ ㄅㄨˋ ㄒㄧㄤˇ ㄕㄨㄟˋ ㄐㄧㄠˋ ㄧ ㄓˊ ㄧㄠˊ ㄊㄡˊ'},
+ {w:'首先',z:'ㄕㄡˇ ㄒㄧㄢ',s:'＿＿，把大象牽到船上。',
+  sz:'ㄕㄡˇ ㄒㄧㄢ ㄅㄚˇ ㄉㄚˋ ㄒㄧㄤˋ ㄑㄧㄢ ㄉㄠˋ ㄔㄨㄢˊ ㄕㄤˋ'},
+ {w:'下沉',z:'ㄒㄧㄚˋ ㄔㄣˊ',s:'大象站上船，船就慢慢＿＿了。',
+  sz:'ㄉㄚˋ ㄒㄧㄤˋ ㄓㄢˋ ㄕㄤˋ ㄔㄨㄢˊ ㄔㄨㄢˊ ㄐㄧㄡˋ ㄇㄢˋ ㄇㄢˋ ㄒㄧㄚˋ ㄔㄣˊ ˙ㄌㄜ'},
+ {w:'多少',z:'ㄉㄨㄛ ㄕㄠˇ',s:'這隻大象到底有＿＿重呢？',
+  sz:'ㄓㄜˋ ㄓ ㄉㄚˋ ㄒㄧㄤˋ ㄉㄠˋ ㄉㄧˇ ㄧㄡˇ ㄉㄨㄛ ㄕㄠˇ ㄓㄨㄥˋ ˙ㄋㄜ'},
+ {w:'然後',z:'ㄖㄢˊ ㄏㄡˋ',s:'先洗手，＿＿再吃飯。',
+  sz:'ㄒㄧㄢ ㄒㄧˇ ㄕㄡˇ ㄖㄢˊ ㄏㄡˋ ㄗㄞˋ ㄔ ㄈㄢˋ'},
+ {w:'年紀',z:'ㄋㄧㄢˊ ㄐㄧˋ',s:'爺爺的＿＿很大了，但是身體很好。',
+  sz:'ㄧㄝˊ ˙ㄧㄝ ˙ㄉㄜ ㄋㄧㄢˊ ㄐㄧˋ ㄏㄣˇ ㄉㄚˋ ˙ㄌㄜ ㄉㄢˋ ㄕˋ ㄕㄣ ㄊㄧˇ ㄏㄣˇ ㄏㄠˇ'},
+ {w:'竟然',z:'ㄐㄧㄥˋ ㄖㄢˊ',s:'小小的曹沖，＿＿想出了好方法。',
+  sz:'ㄒㄧㄠˇ ㄒㄧㄠˇ ˙ㄉㄜ ㄘㄠˊ ㄔㄨㄥ ㄐㄧㄥˋ ㄖㄢˊ ㄒㄧㄤˇ ㄔㄨ ˙ㄌㄜ ㄏㄠˇ ㄈㄤ ㄈㄚˇ'}
+ ]},
+{id:10,title:'新年快樂',icon:'🎆',deco:['🏮','🧧','🎇','🍊','🌸','🎉','🏮','🥟','🧨','🌸'],
+ chars:[
+ {c:'雪',z:'ㄒㄩㄝˇ',w:'下＿',wz:'ㄒㄧㄚˋ ㄒㄩㄝˇ',t:'冬天從天上飄下來、白白的冰花',o:['雷','電','雲']},
+ {c:'梨',z:'ㄌㄧˊ',w:'水＿',wz:'ㄕㄨㄟˇ ㄌㄧˊ',t:'一種水分很多、甜甜脆脆的水果',o:['利','李','梁']},
+ {c:'夜',z:'ㄧㄝˋ',w:'半＿',wz:'ㄅㄢˋ ㄧㄝˋ',t:'晚上十二點左右，大家都在睡覺',o:['液','衣','交']},
+ {c:'卻',z:'ㄑㄩㄝˋ',w:'＿是',wz:'ㄑㄩㄝˋ ㄕˋ',t:'可是、反而，和想的不一樣',o:['腳','卸','即']},
+ {c:'冷',z:'ㄌㄥˇ',w:'寒＿',wz:'ㄏㄢˊ ㄌㄥˇ',t:'溫度很低，要穿外套',o:['令','鈴','玲']},
+ {c:'冬',z:'ㄉㄨㄥ',w:'＿天',wz:'ㄉㄨㄥ ㄊㄧㄢ',t:'四季中最冷的季節',o:['東','各','條']},
+ {c:'臺',z:'ㄊㄞˊ',w:'＿灣',wz:'ㄊㄞˊ ㄨㄢ',t:'我們住的寶島',o:['堂','室','壹']},
+ {c:'季',z:'ㄐㄧˋ',w:'＿節',wz:'ㄐㄧˋ ㄐㄧㄝˊ',t:'春、夏、秋、冬，一年分成四個…',o:['李','秀','紀']},
+ {c:'相',z:'ㄒㄧㄤ',w:'＿反',wz:'ㄒㄧㄤ ㄈㄢˇ',t:'完全不一樣，一個正一個反',o:['想','箱','根']},
+ {c:'反',z:'ㄈㄢˇ',w:'相＿',wz:'ㄒㄧㄤ ㄈㄢˇ',t:'方向顛倒，和「正」不一樣',o:['友','返','板']},
+ {c:'煙',z:'ㄧㄢ',w:'＿火',wz:'ㄧㄢ ㄏㄨㄛˇ',t:'過年時在天空開出漂亮花朵的…',o:['炒','因','燈']},
+ {c:'火',z:'ㄏㄨㄛˇ',w:'＿車',wz:'ㄏㄨㄛˇ ㄔㄜ',t:'在鐵軌上跑、可以載很多人的車',o:['米','炎','伙']},
+ {c:'待',z:'ㄉㄞˋ',w:'等＿',wz:'ㄉㄥˇ ㄉㄞˋ',t:'等一等、等候',o:['特','侍','持']},
+ {c:'雖',z:'ㄙㄨㄟ',w:'＿然',wz:'ㄙㄨㄟ ㄖㄢˊ',t:'常常和「但是」一起用',o:['難','雞','誰']},
+ {c:'春',z:'ㄔㄨㄣ',w:'＿天',wz:'ㄔㄨㄣ ㄊㄧㄢ',t:'花開了，一年的第一個季節',o:['看','奏','泰']},
+ {c:'貨',z:'ㄏㄨㄛˋ',w:'年＿',wz:'ㄋㄧㄢˊ ㄏㄨㄛˋ',t:'過年要用、要吃的東西',o:['花','貸','費']},
+ {c:'期',z:'ㄑㄧˊ',w:'＿待',wz:'ㄑㄧˊ ㄉㄞˋ',t:'很希望某件事快點來',o:['其','棋','欺']},
+ {c:'飯',z:'ㄈㄢˋ',w:'吃＿',wz:'ㄔ ㄈㄢˋ',t:'把米煮熟了就是…',o:['飲','餅','販']},
+ {c:'灣',z:'ㄨㄢ',w:'臺＿',wz:'ㄊㄞˊ ㄨㄢ',t:'我們住的地方叫「臺…」',o:['彎','變','蠻'],read:1},
+ {c:'綻',z:'ㄓㄢˋ',w:'＿放',wz:'ㄓㄢˋ ㄈㄤˋ',t:'花朵打開、開出來',o:['定','站','綠'],read:1}
+ ],
+ words:[
+ {w:'雪梨',z:'ㄒㄩㄝˇ ㄌㄧˊ',s:'澳洲的＿＿過年時是夏天。',
+  sz:'ㄠˋ ㄓㄡ ˙ㄉㄜ ㄒㄩㄝˇ ㄌㄧˊ ㄍㄨㄛˋ ㄋㄧㄢˊ ㄕˊ ㄕˋ ㄒㄧㄚˋ ㄊㄧㄢ'},
+ {w:'冬天',z:'ㄉㄨㄥ ㄊㄧㄢ',s:'＿＿到了，我穿上厚厚的外套。',
+  sz:'ㄉㄨㄥ ㄊㄧㄢ ㄉㄠˋ ˙ㄌㄜ ㄨㄛˇ ㄔㄨㄢ ㄕㄤˋ ㄏㄡˋ ㄏㄡˋ ˙ㄉㄜ ㄨㄞˋ ㄊㄠˋ'},
+ {w:'臺灣',z:'ㄊㄞˊ ㄨㄢ',s:'我們住在美麗的＿＿。',
+  sz:'ㄨㄛˇ ˙ㄇㄣ ㄓㄨˋ ㄗㄞˋ ㄇㄟˇ ㄌㄧˋ ˙ㄉㄜ ㄊㄞˊ ㄨㄢ'},
+ {w:'季節',z:'ㄐㄧˋ ㄐㄧㄝˊ',s:'一年有春、夏、秋、冬四個＿＿。',
+  sz:'ㄧ ㄋㄧㄢˊ ㄧㄡˇ ㄔㄨㄣ ㄒㄧㄚˋ ㄑㄧㄡ ㄉㄨㄥ ㄙˋ ˙ㄍㄜ ㄐㄧˋ ㄐㄧㄝˊ'},
+ {w:'相反',z:'ㄒㄧㄤ ㄈㄢˇ',s:'「上」的意思跟「下」剛好＿＿。',
+  sz:'ㄕㄤˋ ˙ㄉㄜ ㄧˋ ˙ㄙ ㄍㄣ ㄒㄧㄚˋ ㄍㄤ ㄏㄠˇ ㄒㄧㄤ ㄈㄢˇ'},
+ {w:'煙火',z:'ㄧㄢ ㄏㄨㄛˇ',s:'跨年夜，天空放出好多漂亮的＿＿。',
+  sz:'ㄎㄨㄚˋ ㄋㄧㄢˊ ㄧㄝˋ ㄊㄧㄢ ㄎㄨㄥ ㄈㄤˋ ㄔㄨ ㄏㄠˇ ㄉㄨㄛ ㄆㄧㄠˋ ˙ㄌㄧㄤ ˙ㄉㄜ ㄧㄢ ㄏㄨㄛˇ'},
+ {w:'等待',z:'ㄉㄥˇ ㄉㄞˋ',s:'我們在門口＿＿爸爸回家。',
+  sz:'ㄨㄛˇ ˙ㄇㄣ ㄗㄞˋ ㄇㄣˊ ㄎㄡˇ ㄉㄥˇ ㄉㄞˋ ㄅㄚˋ ˙ㄅㄚ ㄏㄨㄟˊ ㄐㄧㄚ'},
+ {w:'綻放',z:'ㄓㄢˋ ㄈㄤˋ',s:'春天到了，花朵一朵朵＿＿。',
+  sz:'ㄔㄨㄣ ㄊㄧㄢ ㄉㄠˋ ˙ㄌㄜ ㄏㄨㄚ ㄉㄨㄛˇ ㄧ ㄉㄨㄛˇ ㄉㄨㄛˇ ㄓㄢˋ ㄈㄤˋ'},
+ {w:'雖然',z:'ㄙㄨㄟ ㄖㄢˊ',s:'＿＿外面很冷，但是大家都很開心。',
+  sz:'ㄙㄨㄟ ㄖㄢˊ ㄨㄞˋ ㄇㄧㄢˋ ㄏㄣˇ ㄌㄥˇ ㄉㄢˋ ㄕˋ ㄉㄚˋ ㄐㄧㄚ ㄉㄡ ㄏㄣˇ ㄎㄞ ㄒㄧㄣ'},
+ {w:'春節',z:'ㄔㄨㄣ ㄐㄧㄝˊ',s:'＿＿的時候，我們會貼春聯。',
+  sz:'ㄔㄨㄣ ㄐㄧㄝˊ ˙ㄉㄜ ㄕˊ ㄏㄡˋ ㄨㄛˇ ˙ㄇㄣ ㄏㄨㄟˋ ㄊㄧㄝ ㄔㄨㄣ ㄌㄧㄢˊ'},
+ {w:'年貨',z:'ㄋㄧㄢˊ ㄏㄨㄛˋ',s:'快過年了，媽媽去市場買＿＿。',
+  sz:'ㄎㄨㄞˋ ㄍㄨㄛˋ ㄋㄧㄢˊ ˙ㄌㄜ ㄇㄚ ˙ㄇㄚ ㄑㄩˋ ㄕˋ ㄔㄤˊ ㄇㄞˇ ㄋㄧㄢˊ ㄏㄨㄛˋ'},
+ {w:'期待',z:'ㄑㄧˊ ㄉㄞˋ',s:'我好＿＿過年拿紅包。',
+  sz:'ㄨㄛˇ ㄏㄠˇ ㄑㄧˊ ㄉㄞˋ ㄍㄨㄛˋ ㄋㄧㄢˊ ㄋㄚˊ ㄏㄨㄥˊ ㄅㄠ'},
+ {w:'年夜飯',z:'ㄋㄧㄢˊ ㄧㄝˋ ㄈㄢˋ',s:'除夕晚上，全家一起吃＿＿＿。',
+  sz:'ㄔㄨˊ ㄒㄧˋ ㄨㄢˇ ˙ㄕㄤ ㄑㄩㄢˊ ㄐㄧㄚ ㄧ ㄑㄧˇ ㄔ ㄋㄧㄢˊ ㄧㄝˋ ㄈㄢˋ'}
+ ]},
+{id:11,title:'遠方來的黑皮',icon:'🦢',deco:['🌊','🦀','🐚','🌾','🐟','🌿','🐦','🌊','🪨','🌾'],
+ chars:[
+ {c:'皮',z:'ㄆㄧˊ',w:'＿膚',wz:'ㄆㄧˊ ㄈㄨ',t:'包在身體外面的一層',o:['波','被','坡']},
+ {c:'具',z:'ㄐㄩˋ',w:'面＿',wz:'ㄇㄧㄢˋ ㄐㄩˋ',t:'戴在臉上、可以遮住臉的東西',o:['真','且','貝']},
+ {c:'飛',z:'ㄈㄟ',w:'＿機',wz:'ㄈㄟ ㄐㄧ',t:'在天空中載人的交通工具',o:['非','兆','派']},
+ {c:'者',z:'ㄓㄜˇ',w:'舞＿',wz:'ㄨˇ ㄓㄜˇ',t:'跳舞的人',o:['老','考','著']},
+ {c:'洋',z:'ㄧㄤˊ',w:'海＿',wz:'ㄏㄞˇ ㄧㄤˊ',t:'很大很大的海',o:['羊','祥','詳']},
+ {c:'寒',z:'ㄏㄢˊ',w:'＿冷',wz:'ㄏㄢˊ ㄌㄥˇ',t:'天氣非常冷',o:['塞','賽','寨']},
+ {c:'北',z:'ㄅㄟˇ',w:'＿方',wz:'ㄅㄟˇ ㄈㄤ',t:'和「南」相反的方向',o:['背','化','兆']},
+ {c:'嘴',z:'ㄗㄨㄟˇ',w:'＿巴',wz:'ㄗㄨㄟˇ ˙ㄅㄚ',t:'用來吃東西、說話的地方',o:['最','吵','喝']},
+ {c:'伸',z:'ㄕㄣ',w:'＿手',wz:'ㄕㄣ ㄕㄡˇ',t:'把手打直、往前送出去',o:['申','神','仲']},
+ {c:'飽',z:'ㄅㄠˇ',w:'吃＿',wz:'ㄔ ㄅㄠˇ',t:'肚子裝滿了，不餓了',o:['抱','跑','泡']},
+ {c:'沙',z:'ㄕㄚ',w:'＿子',wz:'ㄕㄚ ˙ㄗ',t:'海邊一粒一粒很細的小石頭',o:['炒','妙','吵']},
+ {c:'急',z:'ㄐㄧˊ',w:'著＿',wz:'ㄓㄠ ㄐㄧˊ',t:'心裡很慌、很想快一點',o:['念','怎','忽']},
+ {c:'服',z:'ㄈㄨˊ',w:'衣＿',wz:'ㄧ ˙ㄈㄨ',t:'穿在身上的上衣、褲子',o:['報','朋','腹']},
+ {c:'站',z:'ㄓㄢˋ',w:'＿立',wz:'ㄓㄢˋ ㄌㄧˋ',t:'兩隻腳直直的立在地上',o:['占','拉','位']},
+ {c:'翅',z:'ㄔˋ',w:'＿膀',wz:'ㄔˋ ㄅㄤˇ',t:'鳥用來飛的部分',o:['支','枝','羽']},
+ {c:'膀',z:'ㄅㄤˇ',w:'翅＿',wz:'ㄔˋ ㄅㄤˇ',t:'鳥用來飛的部分',o:['旁','傍','榜']},
+ {c:'充',z:'ㄔㄨㄥ',w:'＿滿',wz:'ㄔㄨㄥ ㄇㄢˇ',t:'裝得滿滿的',o:['允','克','衝']},
+ {c:'念',z:'ㄋㄧㄢˋ',w:'思＿',wz:'ㄙ ㄋㄧㄢˋ',t:'很想很想某個人',o:['今','含','忽']},
+ {c:'戴',z:'ㄉㄞˋ',w:'＿帽子',wz:'ㄉㄞˋ ㄇㄠˋ ˙ㄗ',t:'把帽子放在頭上',o:['帶','代','載'],read:1},
+ {c:'扁',z:'ㄅㄧㄢˇ',w:'＿嘴',wz:'ㄅㄧㄢˇ ㄗㄨㄟˇ',t:'又平又寬的嘴巴，像湯匙',o:['篇','偏','遍'],read:1}
+ ],
+ words:[
+ {w:'面具',z:'ㄇㄧㄢˋ ㄐㄩˋ',s:'黑皮的臉黑黑的，好像戴了＿＿。',
+  sz:'ㄏㄟ ㄆㄧˊ ˙ㄉㄜ ㄌㄧㄢˇ ㄏㄟ ㄏㄟ ˙ㄉㄜ ㄏㄠˇ ㄒㄧㄤˋ ㄉㄞˋ ˙ㄌㄜ ㄇㄧㄢˋ ㄐㄩˋ'},
+ {w:'舞者',z:'ㄨˇ ㄓㄜˇ',s:'舞臺上的＿＿跳得好美。',
+  sz:'ㄨˇ ㄊㄞˊ ㄕㄤˋ ˙ㄉㄜ ㄨˇ ㄓㄜˇ ㄊㄧㄠˋ ˙ㄉㄜ ㄏㄠˇ ㄇㄟˇ'},
+ {w:'海洋',z:'ㄏㄞˇ ㄧㄤˊ',s:'大大的＿＿裡住著很多魚。',
+  sz:'ㄉㄚˋ ㄉㄚˋ ˙ㄉㄜ ㄏㄞˇ ㄧㄤˊ ㄌㄧˇ ㄓㄨˋ ˙ㄓㄜ ㄏㄣˇ ㄉㄨㄛ ㄩˊ'},
+ {w:'寒冷',z:'ㄏㄢˊ ㄌㄥˇ',s:'＿＿的冬天，我們喝熱湯。',
+  sz:'ㄏㄢˊ ㄌㄥˇ ˙ㄉㄜ ㄉㄨㄥ ㄊㄧㄢ ㄨㄛˇ ˙ㄇㄣ ㄏㄜ ㄖㄜˋ ㄊㄤ'},
+ {w:'北方',z:'ㄅㄟˇ ㄈㄤ',s:'冬天到了，黑皮從＿＿飛來臺灣。',
+  sz:'ㄉㄨㄥ ㄊㄧㄢ ㄉㄠˋ ˙ㄌㄜ ㄏㄟ ㄆㄧˊ ㄘㄨㄥˊ ㄅㄟˇ ㄈㄤ ㄈㄟ ㄌㄞˊ ㄊㄞˊ ㄨㄢ'},
+ {w:'沙子',z:'ㄕㄚ ˙ㄗ',s:'我在海邊用＿＿堆城堡。',
+  sz:'ㄨㄛˇ ㄗㄞˋ ㄏㄞˇ ㄅㄧㄢ ㄩㄥˋ ㄕㄚ ˙ㄗ ㄉㄨㄟ ㄔㄥˊ ㄅㄠˇ'},
+ {w:'著急',z:'ㄓㄠ ㄐㄧˊ',s:'小狗不見了，妹妹好＿＿。',
+  sz:'ㄒㄧㄠˇ ㄍㄡˇ ㄅㄨˋ ㄐㄧㄢˋ ˙ㄌㄜ ㄇㄟˋ ˙ㄇㄟ ㄏㄠˇ ㄓㄠ ㄐㄧˊ'},
+ {w:'衣服',z:'ㄧ ˙ㄈㄨ',s:'天氣冷了，要多穿一件＿＿。',
+  sz:'ㄊㄧㄢ ㄑㄧˋ ㄌㄥˇ ˙ㄌㄜ ㄧㄠˋ ㄉㄨㄛ ㄔㄨㄢ ㄧ ㄐㄧㄢˋ ㄧ ˙ㄈㄨ'},
+ {w:'翅膀',z:'ㄔˋ ㄅㄤˇ',s:'小鳥張開＿＿，飛上天空。',
+  sz:'ㄒㄧㄠˇ ㄋㄧㄠˇ ㄓㄤ ㄎㄞ ㄔˋ ㄅㄤˇ ㄈㄟ ㄕㄤˋ ㄊㄧㄢ ㄎㄨㄥ'},
+ {w:'充滿',z:'ㄔㄨㄥ ㄇㄢˇ',s:'教室裡＿＿了笑聲。',
+  sz:'ㄐㄧㄠˋ ㄕˋ ㄌㄧˇ ㄔㄨㄥ ㄇㄢˇ ˙ㄌㄜ ㄒㄧㄠˋ ㄕㄥ'},
+ {w:'思念',z:'ㄙ ㄋㄧㄢˋ',s:'奶奶住得很遠，我很＿＿她。',
+  sz:'ㄋㄞˇ ˙ㄋㄞ ㄓㄨˋ ˙ㄉㄜ ㄏㄣˇ ㄩㄢˇ ㄨㄛˇ ㄏㄣˇ ㄙ ㄋㄧㄢˋ ㄊㄚ'}
+ ]},
+{id:12,title:'我愛冬天',icon:'🍲',deco:['⛄','❄️','🧣','🌲','🐈','☕','❄️','🧤','🌲','⛄'],
+ chars:[
+ {c:'灰',z:'ㄏㄨㄟ',w:'＿色',wz:'ㄏㄨㄟ ㄙㄜˋ',t:'黑色和白色混在一起的顏色',o:['火','炭','恢']},
+ {c:'涼',z:'ㄌㄧㄤˊ',w:'＿快',wz:'ㄌㄧㄤˊ ㄎㄨㄞˋ',t:'不熱，很舒服的感覺',o:['京','晾','諒']},
+ {c:'牠',z:'ㄊㄚ',w:'＿們',wz:'ㄊㄚ ˙ㄇㄣ',t:'說「動物」的時候用的ㄊㄚ',o:['他','她','地']},
+ {c:'鼓',z:'ㄍㄨˇ',w:'打＿',wz:'ㄉㄚˇ ㄍㄨˇ',t:'咚咚咚，用手或棒子敲的樂器',o:['喜','古','故']},
+ {c:'絡',z:'ㄌㄨㄛˋ',w:'熱＿',wz:'ㄖㄜˋ ㄌㄨㄛˋ',t:'大家很親近、常常往來',o:['落','路','給']},
+ {c:'欣',z:'ㄒㄧㄣ',w:'＿喜',wz:'ㄒㄧㄣ ㄒㄧˇ',t:'很高興、很快樂',o:['新','砍','吹']},
+ {c:'發',z:'ㄈㄚ',w:'＿現',wz:'ㄈㄚ ㄒㄧㄢˋ',t:'找到了以前沒看到的東西',o:['登','法','髮']},
+ {c:'居',z:'ㄐㄩ',w:'＿然',wz:'ㄐㄩ ㄖㄢˊ',t:'竟然、沒想到',o:['局','屋','巨']},
+ {c:'冒',z:'ㄇㄠˋ',w:'＿煙',wz:'ㄇㄠˋ ㄧㄢ',t:'煙一直往上跑出來',o:['帽','冊','胃']},
+ {c:'冰',z:'ㄅㄧㄥ',w:'＿塊',wz:'ㄅㄧㄥ ㄎㄨㄞˋ',t:'水變得很冷很冷、硬硬的',o:['水','永','冷']},
+ {c:'圍',z:'ㄨㄟˊ',w:'＿爐',wz:'ㄨㄟˊ ㄌㄨˊ',t:'除夕全家坐在一起吃年夜飯',o:['違','偉','圖']},
+ {c:'咪',z:'ㄇㄧ',w:'貓＿',wz:'ㄇㄠ ㄇㄧ',t:'小貓的叫聲',o:['米','迷','味']},
+ {c:'幸',z:'ㄒㄧㄥˋ',w:'＿福',wz:'ㄒㄧㄥˋ ㄈㄨˊ',t:'生活過得很快樂、很滿足',o:['辛','杏','興']},
+ {c:'團',z:'ㄊㄨㄢˊ',w:'＿聚',wz:'ㄊㄨㄢˊ ㄐㄩˋ',t:'家人聚在一起',o:['圓','園','國']},
+ {c:'聚',z:'ㄐㄩˋ',w:'團＿',wz:'ㄊㄨㄢˊ ㄐㄩˋ',t:'大家集合在一起',o:['取','娶','趣']},
+ {c:'愉',z:'ㄩˊ',w:'＿快',wz:'ㄩˊ ㄎㄨㄞˋ',t:'心情很好、很開心',o:['偷','輸','俞']},
+ {c:'鍋',z:'ㄍㄨㄛ',w:'火＿',wz:'ㄏㄨㄛˇ ㄍㄨㄛ',t:'冬天大家圍著吃、熱呼呼的…',o:['過','禍','渦']},
+ {c:'妙',z:'ㄇㄧㄠˋ',w:'美＿',wz:'ㄇㄟˇ ㄇㄧㄠˋ',t:'非常美好',o:['沙','炒','秒']},
+ {c:'聊',z:'ㄌㄧㄠˊ',w:'＿天',wz:'ㄌㄧㄠˊ ㄊㄧㄢ',t:'和別人說說話',o:['聯','柳','卵'],read:1}
+ ],
+ words:[
+ {w:'牠們',z:'ㄊㄚ ˙ㄇㄣ',s:'動物園的猴子好可愛，我好喜歡＿＿。',
+  sz:'ㄉㄨㄥˋ ㄨˋ ㄩㄢˊ ˙ㄉㄜ ㄏㄡˊ ˙ㄗ ㄏㄠˇ ㄎㄜˇ ㄞˋ ㄨㄛˇ ㄏㄠˇ ㄒㄧˇ ㄏㄨㄢ ㄊㄚ ˙ㄇㄣ'},
+ {w:'圓鼓鼓',z:'ㄩㄢˊ ㄍㄨˇ ㄍㄨˇ',s:'吃完火鍋，弟弟的肚子＿＿＿的。',
+  sz:'ㄔ ㄨㄢˊ ㄏㄨㄛˇ ㄍㄨㄛ ㄉㄧˋ ˙ㄉㄧ ˙ㄉㄜ ㄉㄨˋ ˙ㄗ ㄩㄢˊ ㄍㄨˇ ㄍㄨˇ ˙ㄉㄜ'},
+ {w:'熱絡',z:'ㄖㄜˋ ㄌㄨㄛˋ',s:'過年時，親戚們聊得好＿＿。',
+  sz:'ㄍㄨㄛˋ ㄋㄧㄢˊ ㄕˊ ㄑㄧㄣ ㄑㄧ ˙ㄇㄣ ㄌㄧㄠˊ ˙ㄉㄜ ㄏㄠˇ ㄖㄜˋ ㄌㄨㄛˋ'},
+ {w:'聊天',z:'ㄌㄧㄠˊ ㄊㄧㄢ',s:'晚飯後，全家坐在客廳＿＿。',
+  sz:'ㄨㄢˇ ㄈㄢˋ ㄏㄡˋ ㄑㄩㄢˊ ㄐㄧㄚ ㄗㄨㄛˋ ㄗㄞˋ ㄎㄜˋ ㄊㄧㄥ ㄌㄧㄠˊ ㄊㄧㄢ'},
+ {w:'欣喜',z:'ㄒㄧㄣ ㄒㄧˇ',s:'收到生日禮物，我好＿＿。',
+  sz:'ㄕㄡ ㄉㄠˋ ㄕㄥ ㄖˋ ㄌㄧˇ ㄨˋ ㄨㄛˇ ㄏㄠˇ ㄒㄧㄣ ㄒㄧˇ'},
+ {w:'發現',z:'ㄈㄚ ㄒㄧㄢˋ',s:'我在草地上＿＿一隻小青蛙。',
+  sz:'ㄨㄛˇ ㄗㄞˋ ㄘㄠˇ ㄉㄧˋ ㄕㄤˋ ㄈㄚ ㄒㄧㄢˋ ㄧ ㄓ ㄒㄧㄠˇ ㄑㄧㄥ ㄨㄚ'},
+ {w:'居然',z:'ㄐㄩ ㄖㄢˊ',s:'小貓＿＿自己打開了門。',
+  sz:'ㄒㄧㄠˇ ㄇㄠ ㄐㄩ ㄖㄢˊ ㄗˋ ㄐㄧˇ ㄉㄚˇ ㄎㄞ ˙ㄌㄜ ㄇㄣˊ'},
+ {w:'冒煙',z:'ㄇㄠˋ ㄧㄢ',s:'熱熱的火鍋一直＿＿。',
+  sz:'ㄖㄜˋ ㄖㄜˋ ˙ㄉㄜ ㄏㄨㄛˇ ㄍㄨㄛ ㄧ ㄓˊ ㄇㄠˋ ㄧㄢ'},
+ {w:'笑咪咪',z:'ㄒㄧㄠˋ ㄇㄧ ㄇㄧ',s:'奶奶＿＿＿的給我紅包。',
+  sz:'ㄋㄞˇ ˙ㄋㄞ ㄒㄧㄠˋ ㄇㄧ ㄇㄧ ˙ㄉㄜ ㄍㄟˇ ㄨㄛˇ ㄏㄨㄥˊ ㄅㄠ'},
+ {w:'幸福',z:'ㄒㄧㄥˋ ㄈㄨˊ',s:'一家人在一起，覺得好＿＿。',
+  sz:'ㄧ ㄐㄧㄚ ㄖㄣˊ ㄗㄞˋ ㄧ ㄑㄧˇ ㄐㄩㄝˊ ˙ㄉㄜ ㄏㄠˇ ㄒㄧㄥˋ ㄈㄨˊ'},
+ {w:'團聚',z:'ㄊㄨㄢˊ ㄐㄩˋ',s:'過年的時候，全家人＿＿在一起。',
+  sz:'ㄍㄨㄛˋ ㄋㄧㄢˊ ˙ㄉㄜ ㄕˊ ㄏㄡˋ ㄑㄩㄢˊ ㄐㄧㄚ ㄖㄣˊ ㄊㄨㄢˊ ㄐㄩˋ ㄗㄞˋ ㄧ ㄑㄧˇ'},
+ {w:'愉快',z:'ㄩˊ ㄎㄨㄞˋ',s:'祝你有一個＿＿的寒假！',
+  sz:'ㄓㄨˋ ㄋㄧˇ ㄧㄡˇ ㄧ ˙ㄍㄜ ㄩˊ ㄎㄨㄞˋ ˙ㄉㄜ ㄏㄢˊ ㄐㄧㄚˋ'},
+ {w:'火鍋',z:'ㄏㄨㄛˇ ㄍㄨㄛ',s:'冷冷的冬天，最適合吃＿＿。',
+  sz:'ㄌㄥˇ ㄌㄥˇ ˙ㄉㄜ ㄉㄨㄥ ㄊㄧㄢ ㄗㄨㄟˋ ㄕˋ ㄏㄜˊ ㄔ ㄏㄨㄛˇ ㄍㄨㄛ'},
+ {w:'美妙',z:'ㄇㄟˇ ㄇㄧㄠˋ',s:'音樂會的歌聲好＿＿。',
+  sz:'ㄧㄣ ㄩㄝˋ ㄏㄨㄟˋ ˙ㄉㄜ ㄍㄜ ㄕㄥ ㄏㄠˇ ㄇㄟˇ ㄇㄧㄠˋ'}
+ ]}
 ];
-var ALLCHARS=CHARS.concat(READ);
-var PER_ROUND=8;      /* 一關只出 8 題，小二專注力大概就這麼長 */
-var WRITE_PER_ROUND=5;
 
-/* 森林住民：每 15 罐蜂蜜多一個 */
-var FOREST=['🌱','🌲','🐿️','🌳','🐦','🍄','🌲','🦊','🌼','🦉','🌳','🐝','🏕️','🦌','🌈'];
-var HONEY_PER_FRIEND=15;
+/* ---------- 遊戲設定 ---------- */
+var PER_ROUND=8;      /* 一關只出 8 題，小二專注力大概就這麼長 */
+var MAXROUND=3;       /* 答錯的題目最多再練三輪 */
+var N=30;             /* 每一課一條 30 格的小路（起點＋29 步），答對一題走一步，只前進不後退 */
+var POTS=[6,12,18,24];/* 路上的蜂蜜罐，每 5 步一個，看得到一段一段的進度 */
+/* 小路的形狀（viewBox 100×TRAIL_H，從左下角出發，彎彎曲曲走到右上角的寶箱）和風景的位置 */
+var TRAIL_H=150;
+var TRAIL='M12 140 Q46 136 80 140 A14 14 0 0 0 80 112 Q50 116 20 112 A14 14 0 0 1 20 84 Q50 80 80 84 A14 14 0 0 0 80 56 Q50 60 20 56 A14 14 0 0 1 20 28 Q43 24 66 28';
+var DECO_POS=[[36,126],[62,127],[48,98],[30,70],[64,71],[44,42],[86,40],[16,12],[42,12],[88,14]];
+var POT_HONEY=5;      /* 路上蜂蜜罐 */
+var CLEAR_HONEY=20;   /* 走到寶箱的獎勵 */
+/* 考試前回頭複習的誘因：
+   ⭐ 過關的課再玩一輪、一題都沒錯就拿一顆複習星星（每課最多 3 顆）；
+      考驗的課平均每課 1 顆 ⭐ 就多帶 1 顆 ❤️，最多多 3 顆。
+   🌿 過關的課 3 天沒回來會長草，回來玩一輪就除草，送蜂蜜。 */
+var STAR_MAX=3, STALE_DAYS=3, WEED_HONEY=10;
+/* 兩座城堡：走完第七～九課有小考驗、全部走完有大考驗，各三顆愛心。
+   prize 先留空就不會顯示獎品；想好了再填，例如 prize:'兩張打電動時間兌換券' */
+var CHECKS=[
+  {id:'mid',after:9,lessons:[7,8,9],name:'小考驗',cup:'小獎盃',icon:'🏯',pick:9,build:6,honey:30,prize:''},
+  {id:'final',after:12,lessons:[7,8,9,10,11,12],name:'大考驗',cup:'大獎盃',icon:'🏰',pick:12,build:8,honey:60,prize:''}
+];
+var HEARTS=3;
+/* 蜂蜜商店：用蜂蜜邀請森林朋友，朋友會住進地圖，也可以換牠走小路 */
+var FRIENDS=[['🐰','小兔子',30],['🐿️','小松鼠',40],['🐸','小青蛙',50],['🐼','熊貓',80],['🦊','狐狸',80],
+  ['🐨','無尾熊',100],['🦉','貓頭鷹',100],['🦌','小鹿',120],['🐯','老虎',150],['🦄','獨角獸',200]];
+var CN=['零','一','二','三','四','五','六','七','八','九','十','十一','十二'];
 
 /* ---------- 小工具 ---------- */
 function $(s,r){return (r||document).querySelector(s)}
 function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
-function pick(a,n){return shuffle(a).slice(0,Math.min(n,a.length))}
-function esc(s){return String(s).replace(/[&<>]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[m]})}
-function cssVar(n){return getComputedStyle(document.body).getPropertyValue(n).trim()}
+function esc(s){return String(s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function lname(L){return '第'+CN[L.id]+'課'}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function daysSince(s){return s?Math.round((new Date(today()+'T00:00:00')-new Date(s+'T00:00:00'))/864e5):0}
+function starStr(n){return '⭐'.repeat(n)+'☆'.repeat(STAR_MAX-n)}
+function cpRange(cp){return '第'+CN[cp.lessons[0]]+'～'+CN[cp.lessons[cp.lessons.length-1]]+'課'}
+function rangeName(){var a=LESSONS[0].id,b=LESSONS[LESSONS.length-1].id;return a===b?'第'+CN[a]+'課':'第'+CN[a]+'～'+CN[b]+'課'}
 
 /* 直排注音 */
 function zbParts(z){
@@ -332,15 +649,11 @@ function zbWord(w,z){
   var zs=String(z).split(/\s+/);
   return w.split('').map(function(c,i){return zb(esc(c),zs[i]||'')}).join('');
 }
-function itemZb(x){
-  if(x.s)return zbWord(x.w,x.z);
-  if(x.k)return x.k==='c'?zb(esc(x.c),x.z):zbWord(x.c,x.z);
-  return zb(esc(x.c),x.z);
-}
+function itemZb(q){return q.type==='build'?zbWord(q.x.w,q.x.z):zb(esc(q.x.c),q.x.z)}
 var PUNC='，。？！、；：「」';
-function sentence(q){
-  var zs=String(q.sz||'').split(/\s+/),k=0,html='';
-  q.s.split('').forEach(function(c){
+function sentence(x){
+  var zs=String(x.sz||'').split(/\s+/),k=0,html='';
+  x.s.split('').forEach(function(c){
     if(PUNC.indexOf(c)>=0){html+='<span class="punc">'+esc(c)+'</span>';return}
     var z=zs[k++]||'';
     html+=zb(c==='＿'?'<span class="blank2">？</span>':esc(c),z);
@@ -348,12 +661,33 @@ function sentence(q){
   return el('div','sent',html);
 }
 
-/* ---------- 存檔（只存正向累積，不存任何「失敗」紀錄） ---------- */
+/* ---------- 題目索引 ---------- */
+var ITEMS={}, BYID={};
+LESSONS.forEach(function(L){
+  BYID[L.id]=L;
+  L.chars.forEach(function(x){var k=L.id+':'+x.c;ITEMS[k]={key:k,L:L,x:x,type:'pick'}});
+  L.words.forEach(function(x){var k=L.id+':'+x.w;ITEMS[k]={key:k,L:L,x:x,type:'build'}});
+});
+
+/* ---------- 存檔 ---------- */
 var KEY='xiaoxiong-v1';
-var save={honey:0,muted:false};
+var save={honey:0,muted:false,L:{},weak:{},cups:{},friends:[],walker:'🐻'};
 try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==='object'){
-  save.honey=p.honey|0;save.muted=!!p.muted;}}}catch(e){}
+  save.honey=p.honey|0;save.muted=!!p.muted;
+  if(p.L&&typeof p.L==='object')Object.keys(p.L).forEach(function(id){var s=p.L[id];if(!s||typeof s!=='object')return;
+    save.L[id]={pos:Math.min(N,Math.max(1,s.pos|0)),pending:Math.max(0,s.pending|0),done:!!s.done,
+      ok:(s.ok&&typeof s.ok==='object')?s.ok:{},stars:Math.min(STAR_MAX,Math.max(0,s.stars|0)),last:typeof s.last==='string'?s.last:''}});
+  if(p.weak&&typeof p.weak==='object')save.weak=p.weak;
+  if(p.cups&&typeof p.cups==='object')save.cups=p.cups;
+  if(Array.isArray(p.friends))save.friends=p.friends.filter(function(e){return FRIENDS.some(function(f){return f[0]===e})});
+  if(save.friends.indexOf(p.walker)>=0)save.walker=p.walker;
+}}}catch(e){}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
+function LS(id){var s=save.L[id];if(!s)s=save.L[id]={pos:1,pending:0,done:false,ok:{},stars:0,last:''};return s}
+function stale(L){var st=LS(L.id);return st.done&&daysSince(st.last)>=STALE_DAYS}
+function cpStars(cp){return cp.lessons.reduce(function(a,id){return a+(BYID[id]?LS(id).stars:0)},0)}
+function bonusHearts(cp){return Math.min(3,Math.floor(cpStars(cp)/cp.lessons.length))}
+function cpOpen(cp){return cp.lessons.every(function(id){return BYID[id]&&LS(id).done})}
 
 /* ---------- 音效（Web Audio 直接合成，不載檔案） ---------- */
 var AC=null;
@@ -373,17 +707,43 @@ function tone(freq,start,dur,vol,type){
   o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.02);
 }
 function sfxStroke(){tone(880,0,0.07,0.10,'triangle')}
+function sfxStep(){tone(660,0,0.08,0.10,'triangle')}
 function sfxGood(){tone(784,0,0.11,0.14);tone(1175,0.09,0.17,0.12)}
 function sfxDone(){[523,659,784,1047].forEach(function(f,i){tone(f,i*0.08,0.22,0.12)})}
 function sfxOops(){tone(300,0,0.13,0.07,'sine')}   /* 低、短、不刺耳 —— 提示而不是責備 */
 function sfxHoney(){tone(1047,0,0.09,0.09,'triangle')}
+function sfxFanfare(){[[523,0],[659,.14],[784,.28],[1047,.42],[784,.62],[1047,.76]].forEach(function(n){tone(n[0],n[1],n[1]>.6?.5:.2,0.13,'triangle')})}
+
+/* 彩帶 */
+function confetti(n){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var cv=el('canvas','confetti'),dpr=Math.min(window.devicePixelRatio||1,2);
+  document.body.appendChild(cv);
+  var W=cv.width=innerWidth*dpr,H=cv.height=innerHeight*dpr,c=cv.getContext('2d');
+  var cs=getComputedStyle(document.body),cols=['--honey','--accent','--berry'].map(function(v){return cs.getPropertyValue(v).trim()}).concat(['#5B8DEF','#F2C94C','#B57EDC']);
+  var ps=[];
+  for(var i=0;i<(n||120);i++)ps.push({x:W*(.2+Math.random()*.6),y:H*.42,vx:(Math.random()-.5)*W*.018,vy:-(Math.random()*H*.022+H*.008),
+    w:(6+Math.random()*7)*dpr,h:(9+Math.random()*9)*dpr,a:Math.random()*6,va:(Math.random()-.5)*.35,col:cols[i%cols.length]});
+  var t0=performance.now();
+  (function f(t){
+    var age=t-t0;c.clearRect(0,0,W,H);
+    ps.forEach(function(p){p.vy+=H*.0006;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+      c.save();c.globalAlpha=Math.max(0,1-age/3600);c.translate(p.x,p.y);c.rotate(p.a);c.fillStyle=p.col;c.fillRect(-p.w/2,-p.h/2,p.w,p.h);c.restore()});
+    if(age<3600)requestAnimationFrame(f);else cv.remove();
+  })(t0);
+}
 
 /* ---------- 畫面狀態 ---------- */
-var stage=$('#stage'),home=$('#home'),bar=$('#bar'),barwrap=$('#barwrap'),
-    scoreEl=$('#score'),backBtn=$('#back'),topTitle=$('#toptitle'),soundBtn=$('#sound');
-var G={mode:null,qs:[],i:0,gain:0,retry:[],round:0,missed:{}};
-var MAXROUND=3;
-var MODENAME={pick:'第一關　找字',build:'第二關　拼圈詞',write:'第三關　寫寫看'};
+var mapEl=$('#map'),boardEl=$('#board'),stage=$('#stage'),shopEl=$('#shop'),bar=$('#bar'),barwrap=$('#barwrap'),
+    scoreEl=$('#score'),backBtn=$('#back'),topTitle=$('#toptitle'),soundBtn=$('#sound'),heartsEl=$('#hearts');
+var view='map',curL=null,walkId=0,backFn=null,modal=null;
+var G={};
+var kbd=false;   /* 只有用鍵盤操作時才自動把焦點移到下一個按鈕，避免觸控時出現框線 */
+document.addEventListener('keydown',function(e){if(e.key==='Tab'||e.key==='Enter'||e.key===' ')kbd=true});
+document.addEventListener('pointerdown',function(){kbd=false},true);
+document.addEventListener('pointermove',function(e){if(e.pointerType==='mouse'&&!document.body.classList.contains('hov'))document.body.classList.add('hov')});
+function calm(){document.body.classList.remove('hov');if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}
+function focusIf(b){if(kbd&&b)b.focus()}
 
 function renderScore(popIt){
   scoreEl.textContent='🍯 '+save.honey;
@@ -391,323 +751,610 @@ function renderScore(popIt){
 }
 function addHoney(n){
   if(n<=0)return;
-  save.honey+=n;G.gain+=n;persist();renderScore(true);sfxHoney();
-}
-function renderForest(){
-  var friends=Math.min(FOREST.length,Math.floor(save.honey/HONEY_PER_FRIEND)+1);
-  var g=$('#fground');g.innerHTML='';
-  for(var i=0;i<friends;i++)g.appendChild(el('span',null,FOREST[i]));
-  for(var j=friends;j<Math.min(FOREST.length,friends+3);j++)g.appendChild(el('span','soon','🌲'));
-  $('#ftotal').textContent='蜂蜜 '+save.honey+' 罐';
-  if(friends>=FOREST.length){
-    $('#fnext').textContent='森林長滿了！小熊說謝謝你 🐻';
-  }else{
-    var need=friends*HONEY_PER_FRIEND-save.honey;
-    $('#fnext').textContent='再 '+need+' 罐蜂蜜，森林就會多一個新朋友';
-  }
+  save.honey+=n;if(G.mode)G.gain+=n;persist();renderScore(true);sfxHoney();
 }
 function syncSound(){soundBtn.textContent=save.muted?'🔇':'🔊'}
 soundBtn.addEventListener('click',function(){
   save.muted=!save.muted;persist();syncSound();
   if(!save.muted)sfxGood();
 });
+backBtn.addEventListener('click',function(){if(backFn)backFn()});
+scoreEl.addEventListener('click',function(){if(view==='map'||view==='board')goShop()});   /* 答題中不跳走 */
+window.addEventListener('resize',function(){setU($('.world',mapEl));setU($('.trail',boardEl))});
 
-(function(){
-  CHARS.forEach(function(x){$('#l1').appendChild(el('span','chip',zb(esc(x.c),x.z)))});
-  READ.forEach(function(x){$('#l2').appendChild(el('span','chip',zb(esc(x.c),x.z)))});
-  WORDS.forEach(function(x){$('#l3').appendChild(el('span','chip',zbWord(x.w,x.z)))});
-  syncSound();renderScore(false);renderForest();
-})();
+function show(v,title,back,backLabel){
+  walkId++;closeModal();calm();
+  view=v;G.mode=v==='stage'?G.mode:null;
+  mapEl.classList.toggle('hide',v!=='map');boardEl.classList.toggle('hide',v!=='board');stage.classList.toggle('hide',v!=='stage');shopEl.classList.toggle('hide',v!=='shop');
+  topTitle.textContent=title||'';
+  backFn=back||null;backBtn.classList.toggle('on',!!back);backBtn.textContent=backLabel||'‹ 地圖';
+  barwrap.classList.toggle('hide',v!=='stage');heartsEl.classList.add('hide');
+  window.scrollTo(0,0);
+}
 
-document.querySelectorAll('.mode').forEach(function(b){
-  b.addEventListener('click',function(){start(b.dataset.mode)});
-});
-backBtn.addEventListener('click',goHome);
+/* ---------- 地圖 ---------- */
+function setU(box){if(box)box.style.setProperty('--u',box.clientWidth/100+'px')}
+function pos(x,y,H){return 'left:'+x+'%;top:'+(y/H*100).toFixed(2)+'%'}
 
-function goHome(){
-  G.mode=null;stage.className='hide';stage.innerHTML='';home.classList.remove('hide');
-  backBtn.classList.remove('on');barwrap.classList.add('hide');topTitle.textContent='';
-  renderForest();renderScore(false);
+/* 森林大地圖：從出發點沿著小路，經過每一課，最上面是大考驗的城堡 */
+function worldMap(){
+  var stops=[];
+  LESSONS.forEach(function(L,i){
+    stops.push({L:L,x:i%2?72:28});
+    CHECKS.forEach(function(cp){if(cp.after===L.id)stops.push({cp:cp,x:50})});
+  });
+  var H=24+stops.length*25,start=[50,H-8],pts=[start];
+  stops.forEach(function(s,i){s.y=H-8-(i+1)*25;pts.push([s.x,s.y])});
+  var d='M'+start[0]+' '+start[1];
+  for(var i=1;i<pts.length;i++){var a=pts[i-1],b=pts[i],my=(a[1]+b[1])/2;d+=' C'+a[0]+' '+my+' '+b[0]+' '+my+' '+b[0]+' '+b[1]}
+
+  var card=el('div','mapcard'),w=el('div','world');
+  w.style.aspectRatio='100 / '+H;
+  w.innerHTML='<svg viewBox="0 0 100 '+H+'" aria-hidden="true"><path class="road" d="'+d+'" stroke-width="8"/><path class="road2" d="'+d+'" stroke-width="5.6"/><path class="roaddash" d="'+d+'" stroke-width="1.4"/></svg>';
+  /* 風景放在站點的另一側；邀請來的森林朋友先住進去 */
+  var deco=['🌲','🌳','🌼','🍄','🪨','🌿','🌷','🌲','🦋','🌳'],spots=[[16,H-12],[84,H-10]];
+  stops.forEach(function(s){if(s.L)spots.push([s.x<50?86:13,s.y+4])});
+  spots.push([15,12],[86,16]);
+  spots.forEach(function(p,i){
+    var f=save.friends[i];
+    w.appendChild(el('span','deco'+(f?' friend':''),f||deco[i%deco.length])).style.cssText=pos(p[0],p[1],H)+(f?';animation-delay:-'+(i*.37).toFixed(2)+'s':'');
+  });
+  stops.forEach(function(s,i){if(s.L)w.appendChild(el('span','deco',deco[(i+5)%deco.length])).style.cssText=pos(s.x<50?74:25,s.y+13,H)+';font-size:calc(var(--u)*5)'});
+
+  var flag=el('div','stop flag','<span class="disc">🚩</span><span class="lbl r"><b>出發</b></span>');
+  flag.style.cssText=pos(start[0],start[1],H);w.appendChild(flag);
+
+  var here=null;
+  stops.forEach(function(s,i){
+    var side=s.x<50?'r':'l',b;
+    if(s.L){
+      var L=s.L,st=LS(L.id),pct=Math.round((st.pos-1)/(N-1)*100);
+      var weedy=stale(L);
+      b=el('button','stop'+(st.done?' done':'')+(weedy?' stale':''),'<span class="disc" style="--p:'+pct+'%">'+L.icon+'</span>'+
+        '<span class="lbl '+side+'"><b>'+lname(L)+'</b><i>'+esc(L.title)+'</i><i>'+(weedy?'🌿 長草了，回來除草 +'+WEED_HONEY+'🍯':st.done?'🏅 '+starStr(st.stars):'🐾 '+(st.pos-1)+' / '+(N-1)+' 步')+'</i></span>');
+      b.setAttribute('aria-label',lname(L)+' '+L.title);
+      b.addEventListener('click',function(){goBoard(L)});
+      if(!here&&!st.done)here=s;
+    }else{
+      var cp=s.cp,open=cpOpen(cp),won=!!save.cups[cp.id];
+      b=el('button','stop castle'+(cp.id==='mid'?' mid':'')+(open?'':' locked'),'<span class="disc">'+(won?'🏆':cp.icon)+'</span>'+
+        '<span class="lbl r"><b>'+cp.name+'</b><i>'+(!open?'🔒 '+cpRange(cp)+'都過關才會開門':won?'🏆 '+cp.cup+'到手！':'⭐ 門開了！可以帶 '+(HEARTS+bonusHearts(cp))+' 顆 ❤️ 去挑戰')+'</i>'+
+        (open&&!won&&bonusHearts(cp)<3?'<i>複習拿 ⭐ 可以多帶 ❤️</i>':'')+'</span>');
+      if(open)b.addEventListener('click',function(){startQuiz('test',null,cp)});else b.disabled=true;
+      if(!here&&!won)here=s;
+    }
+    b.style.cssText+=';'+pos(s.x,s.y,H);
+    w.appendChild(b);
+  });
+  if(here){var hb=el('span','wbear',save.walker);hb.style.cssText=pos(here.x,here.y-(here.cp?10:8.5),H);w.appendChild(hb)}
+  card.appendChild(w);
+  return card;
+}
+
+function goMap(){
+  show('map');
+  mapEl.innerHTML='';
+  mapEl.appendChild(el('div','hero',
+    '<span class="ver">康軒版 二上 ‧ '+rangeName()+'</span>'+
+    '<h1>小熊的生字森林</h1>'+
+    '<p>答對一題，小熊就往前走一步。走完每一課的小路打開寶箱，<br>第九課後有小考驗，最後到城堡挑戰大考驗！</p>'));
+  mapEl.appendChild(worldMap());
+
+  var shopB=el('button','mode','<span class="ico">🍯</span><span class="d"><span class="t">蜂蜜商店</span>用蜂蜜邀請森林朋友（已經邀請 '+save.friends.length+' / '+FRIENDS.length+'）</span><span class="go">›</span>');
+  shopB.addEventListener('click',goShop);
+  mapEl.appendChild(shopB);
+
+  var shelf=el('div','shelf');
+  var got=LESSONS.filter(function(L){return LS(L.id).done}).length;
+  var stars=LESSONS.reduce(function(a,L){return a+LS(L.id).stars},0);
+  shelf.innerHTML='<div class="fh"><b>我的寶物</b><span>徽章 '+got+' / '+LESSONS.length+'　⭐ '+stars+' / '+LESSONS.length*STAR_MAX+'</span></div>'+
+    '<div class="medals">'+LESSONS.map(function(L){
+      return '<span class="medal'+(LS(L.id).done?' on':'')+'"><b>'+L.icon+'</b><i>'+lname(L)+'徽章</i></span>'}).join('')+
+    CHECKS.map(function(cp){return '<span class="medal '+(cp.id==='mid'?'cup':'big')+(save.cups[cp.id]?' on':'')+'"><b>🏆</b><i>'+cp.cup+'</i></span>'}).join('')+'</div>'+
+    CHECKS.filter(function(cp){return cp.prize&&save.cups[cp.id]}).map(function(cp){return '<p class="prize">🎁 '+cp.cup+'：'+esc(cp.prize)+'</p>'}).join('');
+  mapEl.appendChild(shelf);
+  mapEl.appendChild(el('p','foot',
+    '生字與圈詞取自教育部教育百科「生字詞彙表」115 學年度・二年級・國語・康軒版<br>例句與例句注音為自行編寫標註，非課本原文'));
+  renderScore(false);
+  setU($('.world',mapEl));
+}
+
+/* ---------- 每一課的小路 ---------- */
+var TRAIL_PTS=null;
+function trailPts(){
+  if(TRAIL_PTS)return TRAIL_PTS;
+  var ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg'),p=document.createElementNS(ns,'path');
+  p.setAttribute('d',TRAIL);s.appendChild(p);s.style.cssText='position:absolute;width:0;height:0;visibility:hidden';
+  document.body.appendChild(s);
+  var len=p.getTotalLength();TRAIL_PTS=[];
+  for(var i=0;i<N;i++){var q=p.getPointAtLength(len*i/(N-1));TRAIL_PTS.push([q.x,q.y])}
+  s.remove();return TRAIL_PTS;
+}
+function goBoard(L){
+  show('board',lname(L)+'　'+L.title,goMap,'‹ 地圖');
+  curL=L;
+  var st=LS(L.id),pts=trailPts();
+  boardEl.innerHTML='';
+  boardEl.appendChild(el('div','bhead','<span class="nico">'+L.icon+'</span><div><h2>'+lname(L)+'〈'+esc(L.title)+'〉</h2><p id="bstat"></p></div>'));
+
+  var card=el('div','mapcard'),t=el('div','trail');
+  t.style.aspectRatio='100 / '+TRAIL_H;
+  t.innerHTML='<svg viewBox="0 0 100 '+TRAIL_H+'" aria-hidden="true"><path class="road" d="'+TRAIL+'" stroke-width="10"/><path class="road2" d="'+TRAIL+'" stroke-width="7.6"/></svg>';
+  var deco=L.deco||['🌲','🌳','🌼','🍄','🪨','🌿','🌷','🌲','🌾','🦋'];
+  DECO_POS.forEach(function(p,i){t.appendChild(el('span','deco',deco[i%deco.length])).style.cssText=pos(p[0],p[1],TRAIL_H)});
+  pts.forEach(function(p,i){
+    var n=i+1,pot=POTS.indexOf(n)>=0;
+    var s=el('span','stone'+(n===1?' start':'')+(n===N?' goal':'')+(pot?' pot':''),
+      n===1?'🚩':n===N?(st.done?'🏅':'🎁'):pot?'🍯':String(n-1));
+    s.dataset.n=n;s.style.cssText=pos(p[0],p[1],TRAIL_H);t.appendChild(s);
+  });
+  t.appendChild(el('div','token','<span>'+save.walker+'</span>'));
+  card.appendChild(t);
+  card.appendChild(el('div','legend','<span>🐾 答對一題走一步</span><span>🍯 經過就拿蜂蜜</span><span>🎁 走到終點打開寶箱</span>'));
+  boardEl.appendChild(card);
+
+  var modes=el('div','modes');
+  [['pick','🔍','第一關　找字','看注音，挑出正確的字'],['build','🧩','第二關　拼圈詞','把字塊拖進格子，拼成圈詞']].forEach(function(m){
+    var b=el('button','mode','<span class="ico">'+m[1]+'</span><span class="d"><span class="t">'+m[2]+'</span>'+m[3]+'</span><span class="go">›</span>');
+    b.addEventListener('click',function(){startQuiz(m[0],L)});
+    modes.appendChild(b);
+  });
+  boardEl.appendChild(modes);
+
+  var list=el('details','listcard');
+  var cs=L.chars.filter(function(x){return !x.read}),rs=L.chars.filter(function(x){return x.read});
+  list.innerHTML='<summary>看這一課的生字和圈詞</summary>'+
+    '<div class="lab">生字（'+cs.length+' 個習寫字）</div><div class="chips">'+cs.map(function(x){return '<span class="chip">'+zb(esc(x.c),x.z)+'</span>'}).join('')+'</div>'+
+    (rs.length?'<div class="lab">認讀字（'+rs.length+' 個）</div><div class="chips">'+rs.map(function(x){return '<span class="chip">'+zb(esc(x.c),x.z)+'</span>'}).join('')+'</div>':'')+
+    '<div class="lab">圈詞（'+L.words.length+' 個）</div><div class="chips">'+L.words.map(function(x){return '<span class="chip">'+zbWord(x.w,x.z)+'</span>'}).join('')+'</div>';
+  boardEl.appendChild(list);
+
+  boardStatus(L);
+  setU(t);markPast(st.pos);placeToken(st.pos,null);
+  if(st.pending>0&&!st.done)setTimeout(function(){walk(L)},500);
+}
+function boardStatus(L){
+  var st=LS(L.id),p=$('#bstat');if(!p)return;
+  p.textContent=st.done?(stale(L)?'🌿 小路長草了！玩一輪就能除草，送 '+WEED_HONEY+' 🍯。':'')+
+      (st.stars>=STAR_MAX?'🏅 過關了，複習星星 '+starStr(st.stars)+' 收集滿了！':'🏅 過關了！複習一輪一題都沒錯就拿 ⭐（'+starStr(st.stars)+'），⭐ 越多，考驗時愛心越多。'):
+    st.pending>0?'小熊有 '+st.pending+' 步要走…':
+    st.pos>1?'小熊走了 '+(st.pos-1)+' 步，再 '+(N-st.pos)+' 步就到寶箱 🎁':'答對一題，小熊就往前走一步，走 '+(N-1)+' 步到寶箱 🎁';
+}
+function markPast(p){boardEl.querySelectorAll('.stone').forEach(function(s){var n=+s.dataset.n;s.classList.toggle('past',n<p&&n>1)})}
+function placeToken(n,how){
+  var tk=$('.token',boardEl),p=trailPts()[n-1];if(!tk||!p)return;
+  tk.style.transitionDuration=how?'.3s':'0s';
+  tk.style.left=p[0]+'%';tk.style.top=(p[1]/TRAIL_H*100)+'%';
+  if(how==='hop'){tk.classList.remove('hop');void tk.offsetWidth;tk.classList.add('hop')}
+}
+function bubble(txt){var w=$('.mapcard',boardEl);if(!w)return;var b=el('div','bubble',txt);w.appendChild(b);setTimeout(function(){b.remove()},1150)}
+
+/* 小熊一步一步走：經過蜂蜜罐就拿走，走到終點打開寶箱 */
+function walk(L){
+  var id=++walkId,st=LS(L.id);
+  function step(){
+    if(id!==walkId)return;
+    if(st.done||st.pending<=0){st.pending=0;persist();boardStatus(L);return}
+    st.pending--;st.pos=Math.min(N,st.pos+1);persist();
+    placeToken(st.pos,'hop');sfxStep();markPast(st.pos);boardStatus(L);
+    setTimeout(function(){
+      if(id!==walkId)return;
+      if(st.pos>=N){st.pending=0;st.done=true;st.last=today();persist();boardStatus(L);return lessonClear(L)}
+      if(POTS.indexOf(st.pos)>=0){bubble('🍯 +'+POT_HONEY);addHoney(POT_HONEY);setTimeout(step,650)}
+      else setTimeout(step,240);
+    },340);
+  }
+  step();
+}
+
+function openModal(){closeModal();modal=el('div','modal');var c=el('div','card');modal.appendChild(c);document.body.appendChild(modal);calm();return c}
+function closeModal(){if(modal){modal.remove();modal=null}}
+
+function lessonClear(L){
+  sfxFanfare();confetti(140);
+  addHoney(CLEAR_HONEY);
+  var opened=CHECKS.filter(function(cp){return cp.lessons.indexOf(L.id)>=0&&cpOpen(cp)&&!save.cups[cp.id]})[0];
+  var card=openModal();
+  card.appendChild(el('div','done',
+    '<div class="big"><span class="chest">🎁</span></div><h2>'+lname(L)+'過關！</h2>'+
+    '<p>小熊走到寶箱了！打開來看看：</p>'+
+    '<div class="loot"><span>'+L.icon+' '+lname(L)+'徽章</span><span>+'+CLEAR_HONEY+' 🍯</span></div>'+
+    (opened?'<p><b>'+cpRange(opened)+'都過關了！'+opened.icon+' '+opened.name+'的城堡打開了，<br>回地圖去挑戰，贏得'+opened.cup+'！</b></p>':
+      '<p>之後回來複習，一輪一題都沒錯可以拿 ⭐，<br>⭐ 越多，考驗的時候可以多帶愛心！</p>')));
+  setTimeout(function(){var c=$('.chest',card);if(c)c.textContent='🏅'},900);
+  var t=el('div','redo'),b=el('button','btn gold',opened?'去挑戰'+opened.name+' →':'太棒了！');
+  b.addEventListener('click',function(){closeModal();if(opened)goMap();else goBoard(L)});
+  t.appendChild(b);card.appendChild(t);focusIf(b);
+}
+
+/* ---------- 出題 ---------- */
+function lessonSet(L,type){
+  var st=LS(L.id);
+  var items=(type==='pick'?L.chars.map(function(x){return ITEMS[L.id+':'+x.c]}):L.words.map(function(x){return ITEMS[L.id+':'+x.w]}));
+  /* 還沒答對過的先出，所有題目輪流出現 */
+  return shuffle(items).sort(function(a,b){return (st.ok[a.key]|0)-(st.ok[b.key]|0)}).slice(0,PER_ROUND);
+}
+function testSet(cp){
+  function take(type,n){
+    var all=Object.keys(ITEMS).map(function(k){return ITEMS[k]}).filter(function(q){return q.type===type&&cp.lessons.indexOf(q.L.id)>=0});
+    var weak=shuffle(all.filter(function(q){return save.weak[q.key]})).slice(0,Math.ceil(n/2));  /* 不熟的最多占一半 */
+    var rest=shuffle(all.filter(function(q){return weak.indexOf(q)<0})).slice(0,n-weak.length);
+    return weak.concat(rest);
+  }
+  return shuffle(take('pick',cp.pick).concat(take('build',cp.build)));
+}
+
+function startQuiz(mode,L,cp){
+  G={mode:mode,L:L||null,cp:cp||null,qs:[],i:0,gain:0,steps:0,retry:[],round:0,missed:{},hearts:HEARTS,right:0,firstMiss:0};
+  if(mode==='test'){G.hearts=G.maxHearts=HEARTS+bonusHearts(cp);G.intro=true}
+  else{G.review=LS(L.id).done;G.weedy=stale(L)}
+  var title=mode==='test'?cp.icon+' '+cp.name:(mode==='pick'?'第一關　找字':'第二關　拼圈詞');
+  show('stage',title,mode==='test'?goMap:function(){goBoard(L)},mode==='test'?'‹ 地圖':'‹ 小路');
+  G.mode=mode;
+  G.qs=mode==='test'?testSet(cp):lessonSet(L,mode);
+  if(mode==='test'){heartsEl.classList.remove('hide');renderHearts(false)}
+  setBar();render();
 }
 function setBar(){bar.style.width=(G.qs.length?Math.round(G.i/G.qs.length*100):0)+'%'}
-
-function start(mode){
-  G.mode=mode;G.i=0;G.gain=0;G.retry=[];G.round=0;G.missed={};
-  home.classList.add('hide');stage.className='';
-  backBtn.classList.add('on');barwrap.classList.remove('hide');
-  topTitle.textContent=MODENAME[mode];
-  if(mode==='pick')G.qs=pick(ALLCHARS,PER_ROUND);
-  else if(mode==='build')G.qs=pick(WORDS,PER_ROUND);
-  else G.qs=pick(
-    ALLCHARS.map(function(x){return{k:'c',c:x.c,z:x.z,t:x.t}})
-      .concat(WORDS.map(function(x){return{k:'w',c:x.w,z:x.z,t:x.s.replace(/＿＿/g,x.w)}})),
-    WRITE_PER_ROUND);
-  setBar();render();
+function renderHearts(popIt){
+  heartsEl.textContent='❤️'.repeat(Math.max(0,G.hearts))+'🤍'.repeat(G.maxHearts-Math.max(0,G.hearts));
+  if(popIt){heartsEl.classList.remove('pop');void heartsEl.offsetWidth;heartsEl.classList.add('pop')}
 }
 
 function render(){
-  if(G.i>=G.qs.length){
+  calm();window.scrollTo(0,0);
+  if(G.mode==='test'){
+    if(G.intro)return testIntro();
+    if(G.hearts<=0)return testFail();
+    if(G.i>=G.qs.length)return testWin();
+  }else if(G.i>=G.qs.length){
     if(G.retry.length&&G.round<MAXROUND)return roundBreak();
     return finish();
   }
-  if(G.mode==='pick')renderPick();
-  else if(G.mode==='build')renderBuild();
-  else renderWrite();
+  var q=G.qs[G.i];
+  if(q.type==='pick')renderPick(q);else renderBuild(q);
 }
 
 function roundBreak(){
   var items=shuffle(G.retry);
   G.retry=[];G.round++;G.qs=items;G.i=0;setBar();
-  topTitle.textContent=MODENAME[G.mode]+'　🔁 再練一次';
+  topTitle.textContent=(G.mode==='pick'?'第一關　找字':'第二關　拼圈詞')+'　🔁 再練一次';
   stage.innerHTML='';
   var card=el('div','card done');
   card.appendChild(el('div','big','🔁'));
   card.appendChild(el('h2',null,'再來一次！'));
-  card.appendChild(el('p',null,(G.mode==='write'?'你圈起來要再練的有 ':'剛剛還不太熟的有 ')+items.length+' 個'));
-  card.appendChild(el('div','rtlist',items.map(itemZb).join('')));
+  card.appendChild(el('p',null,'剛剛還不太熟的有 '+items.length+' 個，答對了一樣可以往前走。'));
   card.appendChild(el('p',null,'小熊陪你再來一遍，答錯不會扣蜂蜜。'));
   var r=el('div','redo'),go=el('button','btn main','開始 →');
   go.addEventListener('click',function(){render()});
   r.appendChild(go);card.appendChild(r);
-  stage.appendChild(card);go.focus();
+  stage.appendChild(card);focusIf(go);
 }
 
-/* ---------- 第一關：找字 ---------- */
-function renderPick(){
-  var q=G.qs[G.i];
-  stage.innerHTML='';
-  var card=el('div','card');
-  card.appendChild(el('span','qtag',(G.round?'🔁 複習　':'')+(q.read?'認讀字':'生字')+'　第 '+(G.i+1)+' / '+G.qs.length+' 題'));
-  var zs=q.wz.split(/\s+/);
-  card.appendChild(el('div','prompt',q.w.split('').map(function(c,i){
+function qtag(q){
+  var n='第 '+(G.i+1)+' / '+G.qs.length+' 題';
+  if(G.mode==='test')return el('span','qtag final',G.cp.icon+' '+G.cp.name+'　'+lname(q.L)+'　'+n);
+  return el('span','qtag',(G.round?'🔁 複習　':'')+(q.type==='build'?'圈詞':q.x.read?'認讀字':'生字')+'　'+n);
+}
+function stepChip(q){return G.mode!=='test'&&!LS(q.L.id).done?'<span class="stepchip">🐾 +1 步</span>':''}
+
+/* 記錄結果。right：這一題一次就做對 */
+function answered(q,right){
+  if(G.mode==='test'){
+    if(right){G.right++;addHoney(2)}
+    else{G.hearts--;G.missed[q.key]=1;save.weak[q.key]=1;persist();renderHearts(true)}
+    return;
+  }
+  var st=LS(q.L.id);
+  if(right){
+    st.ok[q.key]=(st.ok[q.key]|0)+1;
+    if(!G.round)delete save.weak[q.key];
+    if(!st.done){st.pending++;G.steps++}
+  }else{
+    if(!G.round)G.firstMiss++;
+    G.missed[q.key]=1;save.weak[q.key]=1;
+    if(G.retry.indexOf(q)<0)G.retry.push(q);
+  }
+  persist();
+}
+
+/* 找字的題目本體 */
+function pickUI(card,x,done){
+  var zs=x.wz.split(/\s+/);
+  card.appendChild(el('div','prompt',x.w.split('').map(function(c,i){
     return zb(c==='＿'?'<span class="blank">？</span>':esc(c),zs[i]||'');
   }).join('')));
-  card.appendChild(el('p','qhint','提示：'+esc(q.t)));
+  card.appendChild(el('p','qhint','提示：'+esc(x.t)));
   var opts=el('div','opts');
-  shuffle([q.c].concat(q.o)).forEach(function(ch){
-    var b=el('button','opt',ch);
+  shuffle([x.c].concat(x.o)).forEach(function(ch){
+    var b=el('button','opt',esc(ch));
     b.addEventListener('click',function(){
-      card.querySelectorAll('.opt').forEach(function(x){x.disabled=true});
-      if(ch===q.c){
-        b.className='opt right';sfxGood();addHoney(G.round?1:2);
-        ok(card,(G.round?'這次對了！':'答對了！')+'<span class="fbw">'+zbWord(q.w.replace('＿',q.c),q.wz)+'</span>');
-      }else{
-        b.className='opt wrong';sfxOops();G.missed[q.c]=q.z;
-        if(G.retry.indexOf(q)<0)G.retry.push(q);
-        card.querySelectorAll('.opt').forEach(function(x){if(x.textContent===q.c)x.className='opt right'});
-        no(card,'是這個字喔 <span class="fbw">'+zb(esc(q.c),q.z)+'</span>',
-          '「'+esc(ch)+'」和「'+esc(q.c)+'」長得很像，很容易看錯。正確是 <span class="fbw">'+
-          zbWord(q.w.replace('＿',q.c),q.wz)+'</span>　待會兒再練一次就記得了。');
-      }
-      next(card);
+      opts.querySelectorAll('.opt').forEach(function(o){o.disabled=true});
+      var right=ch===x.c;
+      b.className='opt '+(right?'right':'wrong');
+      if(!right)opts.querySelectorAll('.opt').forEach(function(o){if(o.textContent===x.c)o.className='opt right'});
+      done(right,ch);
     });
     opts.appendChild(b);
   });
   card.appendChild(opts);
+}
+
+/* ---------- 第一關：找字 ---------- */
+function renderPick(q){
+  var x=q.x;
+  stage.innerHTML='';
+  var card=el('div','card');
+  card.appendChild(qtag(q));
+  pickUI(card,x,function(right,ch){
+    var word='<span class="fbw">'+zbWord(x.w.replace('＿',x.c),x.wz)+'</span>';
+    answered(q,right);
+    if(right){
+      sfxGood();
+      if(G.mode!=='test')addHoney(G.round?1:2);
+      ok(card,(G.round?'這次對了！':'答對了！')+word+stepChip(q));
+    }else{
+      sfxOops();
+      no(card,'是這個字喔 <span class="fbw">'+zb(esc(x.c),x.z)+'</span>',
+        '「'+esc(ch)+'」和「'+esc(x.c)+'」長得很像，很容易看錯。正確是 '+word+
+        (G.mode==='test'?'　少了一顆 ❤️，還有 '+Math.max(0,G.hearts)+' 顆。':'　待會兒再練一次就記得了。'));
+    }
+    next(card);
+  });
   stage.appendChild(card);
 }
 
-/* ---------- 第二關：拼圈詞 ---------- */
-function renderBuild(){
-  var q=G.qs[G.i],target=q.w.split(''),filled=[],err=false;
+/* ---------- 第二關：拼圈詞（拖拉或點選） ---------- */
+function buildDistractors(x){
+  var target=x.w.split(''),pool=[];
+  /* 先從這幾個字的「長得像」清單挑，再從同一課補 */
+  target.forEach(function(ch){
+    LESSONS.forEach(function(L){L.chars.forEach(function(c){if(c.c===ch)pool=pool.concat(c.o)})});
+  });
+  pool=shuffle(pool).filter(function(c,i,a){return target.indexOf(c)<0&&a.indexOf(c)===i});
+  var picked=pool.slice(0,2);
+  var L=null;Object.keys(ITEMS).forEach(function(k){if(ITEMS[k].x===x)L=ITEMS[k].L});
+  shuffle((L||LESSONS[0]).chars).forEach(function(c){
+    if(picked.length<3&&target.indexOf(c.c)<0&&picked.indexOf(c.c)<0)picked.push(c.c);
+  });
+  return picked;
+}
+function renderBuild(q){
+  var x=q.x,target=x.w.split(''),placed=[],err=false,over=false;
   stage.innerHTML='';
   var card=el('div','card');
-  card.appendChild(el('span','qtag',(G.round?'🔁 複習　':'')+'圈詞　第 '+(G.i+1)+' / '+G.qs.length+' 題'));
-  card.appendChild(sentence(q));
+  card.appendChild(qtag(q));
+  card.appendChild(sentence(x));
 
-  var zs=q.z.split(/\s+/);
+  var zs=x.z.split(/\s+/);
   var slots=el('div','slots');
   slots.innerHTML=target.map(function(ch,i){
-    return '<div class="slotpair"><div class="slot"></div>'+zbOnly(zs[i]||'')+'</div>';
+    return '<div class="slotpair"><div class="slot" data-i="'+i+'"></div>'+zbOnly(zs[i]||'')+'</div>';
   }).join('');
   card.appendChild(slots);
-  var slotEls=slots.querySelectorAll('.slot');
+  var slotEls=[].slice.call(slots.querySelectorAll('.slot'));
 
-  var pool=[];
-  while(pool.length<3){
-    var r=ALLCHARS[Math.floor(Math.random()*ALLCHARS.length)].c;
-    if(target.indexOf(r)<0&&pool.indexOf(r)<0)pool.push(r);
-  }
   var tray=el('div','tray');
-  shuffle(target.concat(pool)).forEach(function(ch){
-    var t=el('button','tile',ch);
-    t.addEventListener('click',function(){
-      if(filled.length>=target.length)return;
-      if(ch===target[filled.length]){
-        var s=slotEls[filled.length];s.textContent=ch;s.className='slot filled';
-        filled.push(ch);t.className='tile used';sfxStroke();
-        if(filled.length===target.length){
-          tray.querySelectorAll('.tile').forEach(function(x){x.disabled=true});
-          sfxGood();addHoney(err||G.round?1:3);
-          var wh='<span class="fbw">'+zbWord(q.w,q.z)+'</span>';
-          if(err){G.missed[q.w]=q.z;if(G.retry.indexOf(q)<0)G.retry.push(q);
-            ok(card,'拼好了！'+wh+'　待會兒再拼一次就更熟了。');}
-          else ok(card,'拼好了！'+wh);
-          next(card);
-        }
-      }else{
-        var s2=slotEls[filled.length];s2.className='slot bad';s2.textContent=ch;
-        sfxOops();
-        setTimeout(function(){s2.className='slot';s2.textContent=''},500);
-        err=true;
-      }
-    });
+  shuffle(target.concat(buildDistractors(x))).forEach(function(ch){
+    var t=el('button','tile',esc(ch));
+    dragTile(t,ch,slotEls,function(i){return tryPlace(t,ch,i)});
     tray.appendChild(t);
   });
   card.appendChild(tray);
-  stage.appendChild(card);
-}
-
-/* ---------- 第三關：寫寫看（田字格描紅／空白默寫，不判筆順） ---------- */
-var showGuide=true;
-function renderWrite(){
-  var q=G.qs[G.i],chars=q.c.split('');
-  stage.innerHTML='';
-  var card=el('div','card');
-  card.appendChild(el('span','qtag',(G.round?'🔁 複習　':'')+(q.k==='c'?'生字':'圈詞')+'　第 '+(G.i+1)+' / '+G.qs.length+' 個'));
-  card.appendChild(el('p','qhint',esc(q.t)));
-
-  var sheet=el('div','sheet'),zs=q.z.split(/\s+/);
-  var cells=[];
-  chars.forEach(function(ch,i){
-    var pair=el('div','cellpair');
-    var box=el('div','gridcell');
-    var g=el('canvas','guide'),k=el('canvas','ink');
-    box.appendChild(g);box.appendChild(k);
-    pair.appendChild(box);
-    pair.insertAdjacentHTML('beforeend',zbOnly(zs[i]||''));
-    sheet.appendChild(pair);
-    cells.push({ink:k,guide:g,ch:ch,box:box,drew:false});
-  });
-  card.appendChild(sheet);
-
-  var tools=el('div','tools');
-  var bGuide=el('button','btn ghost',showGuide?'🙈 把字藏起來':'👀 顯示描寫底字');
-  var bClear=el('button','btn ghost','🧽 擦掉重寫');
-  var queued=G.retry.indexOf(q)>=0;
-  var bRetry=el('button','btn ghost',queued?'✅ 已排進再練一次':'🔁 這個要再練一次');
-  var bNext=el('button','btn main full',G.i===G.qs.length-1?'寫完了 →':'下一個 →');
-  tools.appendChild(bGuide);tools.appendChild(bClear);tools.appendChild(bRetry);tools.appendChild(bNext);
-  card.appendChild(tools);
-  card.appendChild(el('p','qhint','先照著淡淡的字描一次，再按「把字藏起來」從空白自己默寫一次。'));
+  card.appendChild(el('p','dragtip','把字塊拖到格子裡，也可以照順序點'));
   stage.appendChild(card);
 
-  cells.forEach(function(o){setupCanvas(o)});
-
-  bGuide.addEventListener('click',function(){
-    showGuide=!showGuide;bGuide.textContent=showGuide?'🙈 把字藏起來':'👀 顯示描寫底字';
-    cells.forEach(function(o){drawGuide(o)});
-  });
-  bClear.addEventListener('click',function(){
-    cells.forEach(function(o){
-      var c=o.ink.getContext('2d');c.clearRect(0,0,o.ink.width,o.ink.height);
-      o.drew=false;o.box.classList.remove('done');
-    });
-  });
-  bRetry.addEventListener('click',function(){
-    var k=G.retry.indexOf(q);
-    if(k>=0){G.retry.splice(k,1);delete G.missed[q.c];bRetry.textContent='🔁 這個要再練一次'}
-    else{G.retry.push(q);G.missed[q.c]=q.z;bRetry.textContent='✅ 已排進再練一次'}
-  });
-  var awarded=false;
-  bNext.addEventListener('click',function(){
-    if(!awarded){                       /* 有真的動筆才給蜂蜜，一個字 2 罐 */
-      var n=cells.filter(function(o){return o.drew}).length;
-      if(n){sfxDone();addHoney(n*2)}
-      awarded=true;
+  /* i 是放進第幾格；null 代表用點的，放進下一個空格 */
+  function tryPlace(tile,ch,i){
+    if(over)return false;
+    if(i==null){for(var k=0;k<target.length;k++)if(!placed[k]){i=k;break}}
+    if(i==null||placed[i])return false;
+    var s=slotEls[i];
+    if(target[i]===ch){
+      placed[i]=ch;s.textContent=ch;s.className='slot filled';tile.className='tile used';tile.disabled=true;sfxStroke();
+      if(placed.filter(Boolean).length===target.length)complete();
+      return true;
     }
-    G.i++;setBar();render();
-  });
-}
-
-function setupCanvas(o){
-  var box=o.ink.parentNode;
-  function size(){
-    var r=box.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);
-    [o.guide,o.ink].forEach(function(cv){cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr)});
-    drawGuide(o);
+    /* 放錯：格子抖一下，字塊回到原位。不會把錯字留在格子裡 */
+    s.textContent=ch;s.className='slot bad';sfxOops();
+    setTimeout(function(){if(!placed[i]){s.className='slot';s.textContent=''}},500);
+    if(!err){err=true;if(G.mode==='test')answered(q,false)}
+    return false;
   }
-  size();
-  var ctx=o.ink.getContext('2d'),drawing=false;
-  function pt(e){var r=o.ink.getBoundingClientRect();
-    return[(e.clientX-r.left)/r.width*o.ink.width,(e.clientY-r.top)/r.height*o.ink.height]}
-  o.ink.addEventListener('pointerdown',function(e){
-    e.preventDefault();drawing=true;o.ink.setPointerCapture(e.pointerId);
-    if(!o.drew){o.drew=true;o.box.classList.add('done');sfxStroke()}
-    var p=pt(e);ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.lineWidth=Math.max(7,o.ink.width/22);
-    ctx.strokeStyle=cssVar('--ink')||'#222';
-    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0]+.1,p[1]+.1);ctx.stroke();
-  });
-  o.ink.addEventListener('pointermove',function(e){
-    if(!drawing)return;e.preventDefault();var p=pt(e);ctx.lineTo(p[0],p[1]);ctx.stroke();
-  });
-  ['pointerup','pointercancel','pointerleave'].forEach(function(t){
-    o.ink.addEventListener(t,function(){drawing=false});
-  });
-  window.addEventListener('resize',size);
-}
-
-function drawGuide(o){
-  var cv=o.guide,c=cv.getContext('2d'),W=cv.width,H=cv.height;
-  c.clearRect(0,0,W,H);
-  c.fillStyle=cssVar('--surface2')||'#f6faf4';
-  c.fillRect(0,0,W,H);
-  c.strokeStyle=cssVar('--line')||'#d4e2d0';
-  c.lineWidth=Math.max(2,W/60);c.strokeRect(c.lineWidth/2,c.lineWidth/2,W-c.lineWidth,H-c.lineWidth);
-  c.save();c.setLineDash([W/26,W/26]);c.lineWidth=Math.max(1,W/110);
-  c.beginPath();c.moveTo(W/2,0);c.lineTo(W/2,H);c.moveTo(0,H/2);c.lineTo(W,H/2);c.stroke();
-  c.restore();
-  if(showGuide){
-    c.globalAlpha=.3;
-    c.fillStyle=cssVar('--muted')||'#5e7465';
-    c.font='700 '+Math.round(H*.74)+'px '+cssVar('--kai');
-    c.textAlign='center';c.textBaseline='middle';
-    c.fillText(o.ch,W/2,H*.53);
-    c.globalAlpha=1;
+  function complete(){
+    over=true;
+    tray.querySelectorAll('.tile').forEach(function(t){t.disabled=true});
+    $('.dragtip',card).remove();
+    var wh='<span class="fbw">'+zbWord(x.w,x.z)+'</span>';
+    if(G.mode==='test'){
+      if(!err){answered(q,true);sfxGood();ok(card,'拼好了！'+wh)}
+      else{sfxGood();no(card,'拼好了 '+wh,'剛剛放錯一次，少了一顆 ❤️，還有 '+Math.max(0,G.hearts)+' 顆。')}
+    }else{
+      answered(q,!err);sfxGood();addHoney(err||G.round?1:3);
+      if(err)ok(card,'拼好了！'+wh+'　待會兒再拼一次就更熟了。');
+      else ok(card,'拼好了！'+wh+stepChip(q));
+    }
+    next(card);
   }
+}
+/* 用 Pointer Events 做拖拉：手指、觸控筆、滑鼠都可以 */
+function dragTile(t,ch,slotEls,place){
+  t.addEventListener('click',function(e){if(e.detail===0)place(null)});   /* 鍵盤 Enter／空白鍵 */
+  t.addEventListener('pointerdown',function(e){
+    if(t.disabled||e.button>0)return;
+    e.preventDefault();
+    var r=t.getBoundingClientRect(),sx=e.clientX,sy=e.clientY,moved=false,ghost=null,hot=null;
+    try{t.setPointerCapture(e.pointerId)}catch(_){}
+    function slotAt(px,py){
+      for(var i=0;i<slotEls.length;i++){var s=slotEls[i];if(s.classList.contains('filled'))continue;
+        var b=s.getBoundingClientRect();if(px>b.left-14&&px<b.right+14&&py>b.top-14&&py<b.bottom+14)return s}
+      return null;
+    }
+    function mv(ev){
+      var dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(!moved&&Math.abs(dx)+Math.abs(dy)<8)return;
+      if(!moved){
+        moved=true;ghost=t.cloneNode(true);ghost.className='tile ghost';
+        ghost.style.width=r.width+'px';ghost.style.height=r.height+'px';
+        document.body.appendChild(ghost);t.classList.add('lifting');
+      }
+      ghost.style.transform='translate('+(r.left+dx)+'px,'+(r.top+dy)+'px) scale(1.1)';
+      var s=slotAt(ev.clientX,ev.clientY);
+      if(s!==hot){if(hot)hot.classList.remove('hot');hot=s;if(hot)hot.classList.add('hot')}
+    }
+    function end(ev){
+      t.removeEventListener('pointermove',mv);t.removeEventListener('pointerup',end);t.removeEventListener('pointercancel',end);
+      if(hot)hot.classList.remove('hot');
+      if(!moved){if(ev.type==='pointerup')place(null);return}
+      var okDrop=ev.type==='pointerup'&&hot&&place(+hot.dataset.i);
+      t.classList.remove('lifting');
+      if(okDrop){ghost.remove();return}
+      ghost.style.transition='transform .2s ease-out';
+      ghost.style.transform='translate('+r.left+'px,'+r.top+'px) scale(1)';
+      setTimeout(function(){ghost.remove()},220);
+    }
+    t.addEventListener('pointermove',mv);t.addEventListener('pointerup',end);t.addEventListener('pointercancel',end);
+  });
 }
 
 /* ---------- 回饋 / 下一題 ---------- */
-function ok(card,msg){var f=el('div','fb ok on','🎉 '+msg);card.appendChild(f)}
-function no(card,msg,sub){var f=el('div','fb no on','💡 '+msg+(sub?'<small>'+sub+'</small>':''));card.appendChild(f)}
+function ok(card,msg){card.appendChild(el('div','fb ok on','🎉 '+msg))}
+function no(card,msg,sub){card.appendChild(el('div','fb no on','💡 '+msg+(sub?'<small>'+sub+'</small>':'')))}
 function next(card){
-  var t=el('div','tools');
-  var b=el('button','btn main full',G.i===G.qs.length-1?'看成果 →':'下一題 →');
+  var last=G.i===G.qs.length-1,label='下一題 →';
+  if(G.mode==='test'){if(last||G.hearts<=0)label='看結果 →'}
+  else if(last)label=G.retry.length&&G.round<MAXROUND?'再練一次 →':'看成果 →';
+  var t=el('div','tools'),b=el('button','btn main full',label);
   b.addEventListener('click',function(){G.i++;setBar();render()});
-  t.appendChild(b);card.appendChild(t);b.focus();
+  t.appendChild(b);card.appendChild(t);focusIf(b);
+}
+function missBox(note){
+  var miss=Object.keys(G.missed);if(!miss.length)return null;
+  var mb=el('div','misscard');
+  mb.innerHTML='<div class="misslab">這幾個可以再多看一下</div><div class="missrow">'+
+    miss.map(function(k){return '<span>'+itemZb(ITEMS[k])+'</span>'}).join('')+'</div>'+
+    (note?'<p class="missnote">'+note+'</p>':'');
+  return mb;
 }
 
 /* ---------- 結算：只講收穫，不算錯幾題 ---------- */
 function finish(){
-  setBar();bar.style.width='100%';
-  var before=save.honey-G.gain;
-  var friendsBefore=Math.min(FOREST.length,Math.floor(before/HONEY_PER_FRIEND)+1);
-  var friendsNow=Math.min(FOREST.length,Math.floor(save.honey/HONEY_PER_FRIEND)+1);
-  var grew=friendsNow>friendsBefore;
+  bar.style.width='100%';
+  var L=G.L,st=LS(L.id),loot=[],star=false;
+  if(G.review){
+    if(G.weedy){addHoney(WEED_HONEY);loot.push('🌿 除草完成 +'+WEED_HONEY+' 🍯')}
+    if(!G.firstMiss&&st.stars<STAR_MAX){st.stars++;star=true;loot.push('⭐ 複習星星 '+starStr(st.stars))}
+  }
+  st.last=today();persist();
   stage.innerHTML='';
   var card=el('div','card done');
-  card.appendChild(el('div','big',grew?FOREST[friendsNow-1]:'🐻'));
-  card.appendChild(el('h2',null,grew?'森林多了一個新朋友！':'這一輪完成了！'));
+  card.appendChild(el('div','big',star?'⭐':G.steps&&!st.done?'🐾':'🐻'));
+  card.appendChild(el('h2',null,star?'一題都沒錯，拿到複習星星！':G.steps&&!st.done?'小熊可以往前走 '+G.steps+' 步！':'這一輪完成了！'));
   card.appendChild(el('div','gain','+'+G.gain+' 🍯'));
-  var miss=Object.keys(G.missed);
-  card.appendChild(el('p',null,'你的森林現在有 '+save.honey+' 罐蜂蜜。'+
-    (grew?'<br>新朋友 '+FOREST[friendsNow-1]+' 搬進來了！':'')));
-  if(miss.length){
-    var mb=el('div','misscard');
-    mb.innerHTML='<div class="misslab">這幾個可以再多看一下</div><div class="missrow">'+
-      miss.map(function(x){var z=G.missed[x];
-        return '<span>'+(x.length>1?zbWord(x,z):zb(esc(x),z))+'</span>'}).join('')+'</div>'+
-      '<p class="missnote">已經在剛剛的複習輪練過了，寫作業時再留意一下就好。</p>';
-    card.appendChild(mb);
-  }
+  if(loot.length)card.appendChild(el('div','loot',loot.map(function(x){return '<span>'+x+'</span>'}).join('')));
+  card.appendChild(el('p',null,!st.done?(G.steps?'回到小路上，看小熊一步一步往寶箱前進！':'再玩一輪，答對就能往前走。'):
+    st.stars>=STAR_MAX?'這一課的複習星星收集滿了，蜂蜜照樣收下！':
+    '一輪一題都沒錯就能拿 ⭐（現在 '+starStr(st.stars)+'），<br>⭐ 越多，考驗的時候可以多帶愛心！'));
+  var mb=missBox('已經在剛剛的複習輪練過了，寫作業時再留意一下就好。');if(mb)card.appendChild(mb);
   var r=el('div','redo');
-  var again=el('button','btn main','再玩一輪');
-  again.addEventListener('click',function(){start(G.mode)});
-  var back=el('button','btn','回森林看看');
-  back.addEventListener('click',goHome);
-  r.appendChild(again);r.appendChild(back);card.appendChild(r);
+  var walkB=el('button','btn main',st.pending>0&&!st.done?'看小熊前進 →':'回小路');
+  walkB.addEventListener('click',function(){goBoard(L)});
+  var again=el('button','btn','再玩一輪');
+  again.addEventListener('click',function(){startQuiz(G.mode,L)});
+  r.appendChild(walkB);r.appendChild(again);card.appendChild(r);
   stage.appendChild(card);
-  sfxDone();again.focus();
+  sfxDone();focusIf(walkB);
 }
+
+function testIntro(){
+  var cp=G.cp,b=bonusHearts(cp),stars=cpStars(cp),per=cp.lessons.length;
+  stage.innerHTML='';
+  var card=el('div','card done');
+  card.appendChild(el('div','big',cp.icon));
+  card.appendChild(el('h2',null,cp.name+'（'+cpRange(cp)+'）'));
+  card.appendChild(el('p',null,'一共 '+(cp.pick+cp.build)+' 題。答錯會少一顆愛心，愛心用完就下次再來。<br>通過就能拿到「'+cp.cup+'」！'));
+  card.appendChild(el('div','loot','<span>'+'❤️'.repeat(G.hearts)+'　'+G.hearts+' 顆愛心</span>'+(b?'<span>⭐ 複習星星多送 '+b+' 顆</span>':'')));
+  card.appendChild(el('p',null,b>=3?'複習星星收集得超多，帶著滿滿的愛心出發吧！':
+    '現在有 '+stars+' 顆 ⭐。每收集 '+per+' 顆 ⭐ 就多一顆 ❤️（最多多 3 顆）。<br>想多帶愛心，可以先回各課複習拿星星。'));
+  var r=el('div','redo'),go=el('button','btn gold','開始挑戰 →'),back=el('button','btn','先回去複習');
+  go.addEventListener('click',function(){G.intro=false;render()});back.addEventListener('click',goMap);
+  r.appendChild(go);r.appendChild(back);card.appendChild(r);
+  stage.appendChild(card);focusIf(go);
+}
+function testWin(){
+  bar.style.width='100%';
+  var cp=G.cp,first=!save.cups[cp.id];
+  save.cups[cp.id]={hearts:G.hearts,date:today()};
+  persist();addHoney(cp.honey);
+  stage.innerHTML='';
+  var card=el('div','card done');
+  card.appendChild(el('div',null,'<span class="trophy'+(cp.id==='mid'?' small':'')+'">🏆</span>'));
+  card.appendChild(el('h2',null,cp.name+'通過！'));
+  card.appendChild(el('p',null,(first?'你贏得了':'你又一次贏得')+'「'+cp.cup+'」！<br>'+cpRange(cp)+'的生字都難不倒你了。'+
+    (cp.id==='mid'&&!save.cups.final?'<br>繼續往第十課出發，最後的大考驗有大獎盃等著你！':'')));
+  card.appendChild(el('div','loot','<span>🏆 '+cp.cup+'</span><span>'+'❤️'.repeat(G.hearts)+' 剩 '+G.hearts+' 顆愛心</span><span>+'+cp.honey+' 🍯</span>'));
+  if(cp.prize)card.appendChild(el('p','prize','🎁 '+esc(cp.prize)));
+  var mb=missBox();if(mb)card.appendChild(mb);
+  var r=el('div','redo'),b=el('button','btn gold','回地圖看獎盃');
+  b.addEventListener('click',goMap);r.appendChild(b);card.appendChild(r);
+  stage.appendChild(card);
+  sfxFanfare();confetti(cp.id==='mid'?150:200);if(cp.id!=='mid')setTimeout(function(){confetti(120)},900);focusIf(b);
+}
+function testFail(){
+  var cp=G.cp;
+  stage.innerHTML='';
+  var card=el('div','card done');
+  card.appendChild(el('div','big','💪'));
+  card.appendChild(el('h2',null,'差一點點！'));
+  card.appendChild(el('p',null,'愛心用完了'+(G.right?'，不過你已經答對 '+G.right+' 題':'')+'。<br>回各課的小路再練一練，準備好隨時可以再來挑戰！'));
+  var mb=missBox('這幾個先多練習，下次就會了。');if(mb)card.appendChild(mb);
+  var r=el('div','redo'),again=el('button','btn main','再挑戰一次'),back=el('button','btn','回地圖');
+  again.addEventListener('click',function(){startQuiz('test',null,cp)});back.addEventListener('click',goMap);
+  r.appendChild(again);r.appendChild(back);card.appendChild(r);
+  stage.appendChild(card);focusIf(again);
+}
+
+/* ---------- 蜂蜜商店 ---------- */
+var buyArm=null;
+function goShop(){
+  show('shop','🍯 蜂蜜商店',goMap,'‹ 地圖');
+  shopEl.innerHTML='';
+  shopEl.appendChild(el('div','hero','<h1>🍯 蜂蜜商店</h1><p>用蜂蜜邀請森林朋友！朋友會搬進你的森林地圖，<br>也可以換牠陪你走小路。</p><div class="gain">🍯 '+save.honey+'</div>'));
+  var grid=el('div','shopgrid');
+  [['🐻','小熊',0]].concat(FRIENDS).forEach(function(f){
+    var e=f[0],own=e==='🐻'||save.friends.indexOf(e)>=0,using=save.walker===e,short=f[2]-save.honey;
+    var c=el('div','ware'+(own?'':' locked')+(using?' using':''),'<span class="wico">'+e+'</span><b>'+f[1]+'</b>');
+    var b=el('button','btn'+(own&&!using?' main':''));
+    if(using){b.textContent='陪你冒險中 ✓';b.disabled=true}
+    else if(own){b.textContent='換牠走小路';b.addEventListener('click',function(){save.walker=e;persist();sfxGood();goShop()})}
+    else if(short>0){b.textContent='還差 '+short+' 🍯';b.disabled=true}
+    else{
+      b.textContent='🍯 '+f[2]+' 邀請';
+      b.addEventListener('click',function(){
+        if(buyArm!==b){            /* 按兩次才買，避免小朋友誤按 */
+          if(buyArm)buyArm.reset();buyArm=b;b.className='btn gold';b.textContent='確定用 '+f[2]+' 🍯？';
+          b.reset=function(){b.className='btn';b.textContent='🍯 '+f[2]+' 邀請'};
+          setTimeout(function(){if(buyArm===b){b.reset();buyArm=null}},4000);
+          return;
+        }
+        buyArm=null;save.honey-=f[2];save.friends.push(e);persist();renderScore(true);sfxFanfare();confetti(70);
+        goShop();
+        var card=openModal();
+        card.appendChild(el('div','done','<div class="big"><span class="chest">'+e+'</span></div><h2>'+f[1]+'搬進森林了！</h2><p>回地圖就能看到牠。要不要換牠陪你走小路？</p>'));
+        var r=el('div','redo'),yes=el('button','btn gold','好，換牠！'),no=el('button','btn','先不要');
+        yes.addEventListener('click',function(){save.walker=e;persist();closeModal();goShop()});
+        no.addEventListener('click',closeModal);
+        r.appendChild(yes);r.appendChild(no);card.appendChild(r);focusIf(yes);
+      });
+    }
+    c.appendChild(b);grid.appendChild(c);
+  });
+  shopEl.appendChild(grid);
+  shopEl.appendChild(el('p','foot','答對題目、經過路上的 🍯、打開寶箱、通過考驗都能拿到蜂蜜。'));
+  renderScore(false);
+}
+
+syncSound();renderScore(false);goMap();
 </script>
+</body>
+</html>
