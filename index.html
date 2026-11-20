@@ -256,6 +256,19 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-ra
 .chest{display:inline-block;animation:chest .9s cubic-bezier(.3,1.6,.5,1)}
 @keyframes chest{0%{transform:scale(.2) rotate(-20deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
 .foot{color:var(--muted);font-size:12px;line-height:1.8;text-align:center}
+/* 備份／還原：放在地圖最下面，不搶遊戲的注意力；超過 7 天沒備份才用警示色 */
+.bkbtn{display:flex;flex-direction:column;align-items:center;gap:2px;margin:6px auto 0;background:none;border:2px dashed var(--line);border-radius:14px;padding:10px 20px;font-size:14px;font-weight:900;color:var(--ink)}
+.bkbtn small{font-size:12px;font-weight:500;color:var(--muted)}
+.bkbtn.warn small{color:var(--berry);font-weight:900}
+.bk-h{margin:0 0 6px;font-size:20px}
+.bk-p{margin:0 0 10px;font-size:14px;line-height:1.7;color:var(--muted)}
+.bk-box{width:100%;min-height:96px;border:2px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--ink);font:16px/1.5 ui-monospace,Menlo,monospace;padding:10px;resize:vertical;word-break:break-all}  /* 16px：iPad 才不會一點進去就自動放大 */
+.bk-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.bk-msg{min-height:1.6em;margin:2px 0 0;font-size:13px;font-weight:700;color:var(--accent)}
+.bk-msg.bad{color:var(--berry)}
+.bk-hr{border:0;border-top:2px dashed var(--line);margin:18px 0}
+.bk-cmp{background:var(--surface2);border-radius:12px;padding:12px;font-size:14px;line-height:1.8;margin:10px 0}
+.bk-warn{color:var(--berry);font-weight:900}
 
 /* 彈出視窗：過關寶箱 */
 .modal{position:fixed;inset:0;background:rgba(15,25,19,.55);display:grid;place-items:center;padding:16px;z-index:40;animation:fade .2s}
@@ -671,18 +684,52 @@ LESSONS.forEach(function(L){
 
 /* ---------- 存檔 ---------- */
 var KEY='xiaoxiong-v1';
-var save={honey:0,muted:false,L:{},weak:{},cups:{},friends:[],walker:'🐻'};
-try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==='object'){
-  save.honey=p.honey|0;save.muted=!!p.muted;
-  if(p.L&&typeof p.L==='object')Object.keys(p.L).forEach(function(id){var s=p.L[id];if(!s||typeof s!=='object')return;
-    save.L[id]={pos:Math.min(N,Math.max(1,s.pos|0)),pending:Math.max(0,s.pending|0),done:!!s.done,
-      ok:(s.ok&&typeof s.ok==='object')?s.ok:{},stars:Math.min(STAR_MAX,Math.max(0,s.stars|0)),last:typeof s.last==='string'?s.last:''}});
-  if(p.weak&&typeof p.weak==='object')save.weak=p.weak;
-  if(p.cups&&typeof p.cups==='object')save.cups=p.cups;
-  if(Array.isArray(p.friends))save.friends=p.friends.filter(function(e){return FRIENDS.some(function(f){return f[0]===e})});
-  if(save.friends.indexOf(p.walker)>=0)save.walker=p.walker;
-}}}catch(e){}
+function blankSave(){return{honey:0,muted:false,L:{},weak:{},cups:{},friends:[],walker:'🐻',lastBackup:''}}
+/* 把任何來源（瀏覽器存檔、貼上的存檔碼）的資料清洗成一份合法存檔：壞的欄位直接丟掉，不會讓遊戲壞掉 */
+function applySave(p){
+  var s=blankSave();
+  if(!p||typeof p!=='object')return s;
+  s.honey=Math.max(0,p.honey|0);s.muted=!!p.muted;
+  if(p.L&&typeof p.L==='object')Object.keys(p.L).forEach(function(id){var q=p.L[id];if(!q||typeof q!=='object')return;
+    s.L[id]={pos:Math.min(N,Math.max(1,q.pos|0)),pending:Math.max(0,q.pending|0),done:!!q.done,
+      ok:(q.ok&&typeof q.ok==='object')?q.ok:{},stars:Math.min(STAR_MAX,Math.max(0,q.stars|0)),last:typeof q.last==='string'?q.last:''}});
+  if(p.weak&&typeof p.weak==='object')s.weak=p.weak;
+  if(p.cups&&typeof p.cups==='object')s.cups=p.cups;
+  if(Array.isArray(p.friends))s.friends=p.friends.filter(function(e){return FRIENDS.some(function(f){return f[0]===e})});
+  if(s.friends.indexOf(p.walker)>=0)s.walker=p.walker;
+  if(typeof p.lastBackup==='string')s.lastBackup=p.lastBackup;
+  return s;
+}
+var save=blankSave();
+try{var raw=localStorage.getItem(KEY);if(raw)save=applySave(JSON.parse(raw))}catch(e){}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save))}catch(e){}}
+
+/* ---------- 備份／還原：存檔碼 ----------
+   格式：XXSL1.<base64 的存檔 JSON>.<檢查碼>。檢查碼用來抓「複製到一半」或「貼少一段」的情況。 */
+var CODE_HEAD='XXSL1.';
+function codeCheck(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h.toString(36)}
+function makeCode(){
+  var snap=JSON.parse(JSON.stringify(save));snap.lastBackup=today();   /* 存檔碼裡記的是「這次備份」的日子 */
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(snap))));
+  return CODE_HEAD+b64+'.'+codeCheck(b64);
+}
+/* 回傳 {ok:true,data:清洗後的存檔} 或 {ok:false,why:白話原因} */
+function readCode(text){
+  var t=String(text||'').replace(/[\s　​﻿]/g,'');
+  if(!t)return{ok:false,why:'還沒有貼上存檔碼。'};
+  if(t.indexOf(CODE_HEAD)!==0)return{ok:false,why:'這不是存檔碼（應該以 XXSL1. 開頭）。'};
+  var parts=t.slice(CODE_HEAD.length).split('.');
+  if(parts.length!==2)return{ok:false,why:'存檔碼好像少了一段，請整串重新複製。'};
+  if(codeCheck(parts[0])!==parts[1])return{ok:false,why:'存檔碼對不起來，可能複製到一半。請整串重新複製。'};
+  var json;
+  try{json=decodeURIComponent(escape(atob(parts[0])));var o=JSON.parse(json);
+      if(!o||typeof o!=='object')throw 0;return{ok:true,data:applySave(o)}}
+  catch(e){return{ok:false,why:'存檔碼讀不出來，請整串重新複製。'}}
+}
+function saveSummary(s){
+  var done=LESSONS.filter(function(L){return s.L[L.id]&&s.L[L.id].done}).length;
+  return{honey:s.honey,friends:s.friends.length,done:done,cups:Object.keys(s.cups).filter(function(k){return s.cups[k]}).length};
+}
 function LS(id){var s=save.L[id];if(!s)s=save.L[id]={pos:1,pending:0,done:false,ok:{},stars:0,last:''};return s}
 function stale(L){var st=LS(L.id);return st.done&&daysSince(st.last)>=STALE_DAYS}
 function cpStars(cp){return cp.lessons.reduce(function(a,id){return a+(BYID[id]?LS(id).stars:0)},0)}
@@ -853,6 +900,9 @@ function goMap(){
     CHECKS.map(function(cp){return '<span class="medal '+(cp.id==='mid'?'cup':'big')+(save.cups[cp.id]?' on':'')+'"><b>🏆</b><i>'+cp.cup+'</i></span>'}).join('')+'</div>'+
     CHECKS.filter(function(cp){return cp.prize&&save.cups[cp.id]}).map(function(cp){return '<p class="prize">🎁 '+cp.cup+'：'+esc(cp.prize)+'</p>'}).join('');
   mapEl.appendChild(shelf);
+  var bk=el('button','bkbtn'+(backupStale()?' warn':''),'💾 備份／還原進度<small>'+backupAgo()+'</small>');
+  bk.addEventListener('click',openBackup);
+  mapEl.appendChild(bk);
   mapEl.appendChild(el('p','foot',
     '生字與圈詞取自教育部教育百科「生字詞彙表」115 學年度・二年級・國語・康軒版<br>例句與例句注音為自行編寫標註，非課本原文'));
   renderScore(false);
@@ -949,6 +999,89 @@ function walk(L){
 
 function openModal(){closeModal();modal=el('div','modal');var c=el('div','card');modal.appendChild(c);document.body.appendChild(modal);calm();return c}
 function closeModal(){if(modal){modal.remove();modal=null}}
+
+/* ---------- 備份／還原視窗 ---------- */
+function backupAgo(){
+  if(!save.lastBackup)return'尚未備份';
+  var d=daysSince(save.lastBackup);
+  return d<=0?'今天已備份':d+' 天前備份';
+}
+function backupStale(){return !save.lastBackup||daysSince(save.lastBackup)>=7}
+function sumLine(s){var m=saveSummary(s);return'蜂蜜 <b>'+m.honey+'</b> 罐、森林朋友 <b>'+m.friends+'</b> 位、通過 <b>'+m.done+'</b> 課'}
+
+function openBackup(){
+  var c=openModal();
+  c.appendChild(el('h2','bk-h','💾 備份進度'));
+  var head=el('p','bk-p','');
+  function refreshHead(){head.innerHTML='目前：'+sumLine(save)+'。<br>'+backupAgo()+'。'}
+  refreshHead();c.appendChild(head);
+  c.appendChild(el('p','bk-p','瀏覽器可能會把遊戲資料清掉（很久沒開、或有人清除瀏覽資料）。按「複製」後貼到備忘錄收好，資料不見時貼回來就能還原。'));
+
+  var code=makeCode();
+  var box=el('textarea','bk-box');box.readOnly=true;box.value=code;box.setAttribute('aria-label','存檔碼');
+  box.addEventListener('focus',function(){box.select()});
+  c.appendChild(box);
+  var msg=el('p','bk-msg','');msg.setAttribute('aria-live','polite');
+  function say(t,bad){msg.textContent=t;msg.className='bk-msg'+(bad?' bad':'')}
+  function marked(){save.lastBackup=today();persist();refreshHead()}
+  box.addEventListener('copy',function(){marked();say('已複製！請貼到備忘錄收好。')});   /* 長按手動拷貝也算備份 */
+
+  var row=el('div','bk-row');
+  var bCopy=el('button','btn main','📋 複製存檔碼');
+  bCopy.addEventListener('click',function(){
+    var ok=function(){marked();say('已複製！請貼到備忘錄收好。')};
+    var fallback=function(){
+      box.focus();box.select();try{box.setSelectionRange(0,box.value.length)}catch(e){}
+      var done=false;try{done=document.execCommand('copy')}catch(e){}
+      if(done)ok();else say('沒辦法自動複製。請長按上面的文字，選「全選」，再按「拷貝」。',true);
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(box.value).then(ok,fallback);
+    else fallback();
+  });
+  row.appendChild(bCopy);
+  if(navigator.share){
+    var bShare=el('button','btn','📤 分享／存到備忘錄');
+    bShare.addEventListener('click',function(){
+      navigator.share({title:'小熊的生字森林 存檔碼',text:code}).then(function(){marked();say('已送出。')},function(){});
+    });
+    row.appendChild(bShare);
+  }
+  c.appendChild(row);c.appendChild(msg);
+
+  c.appendChild(el('hr','bk-hr'));
+  c.appendChild(el('h2','bk-h','♻️ 還原進度'));
+  c.appendChild(el('p','bk-p','換了新的開法（例如加到主畫面），或資料不見了，把存檔碼貼在這裡。'));
+  var inp=el('textarea','bk-box');inp.placeholder='把存檔碼貼在這裡';inp.setAttribute('aria-label','貼上存檔碼');
+  c.appendChild(inp);
+  var rmsg=el('p','bk-msg','');rmsg.setAttribute('aria-live','polite');
+  var panel=el('div','');
+  var bRead=el('button','btn','讀取存檔碼');
+  var row2=el('div','bk-row');row2.appendChild(bRead);
+  c.appendChild(row2);c.appendChild(rmsg);c.appendChild(panel);
+
+  bRead.addEventListener('click',function(){
+    panel.innerHTML='';rmsg.textContent='';rmsg.className='bk-msg';
+    var r=readCode(inp.value);
+    if(!r.ok){rmsg.textContent=r.why;rmsg.className='bk-msg bad';return}
+    var a=saveSummary(r.data),b=saveSummary(save);
+    var behind=a.honey<b.honey||a.done<b.done||a.friends<b.friends;
+    var cmp=el('div','bk-cmp','<div>這份存檔：'+sumLine(r.data)+'</div><div>這台現在：'+sumLine(save)+'</div>'+
+      (behind?'<div class="bk-warn">⚠ 這份存檔的進度比這台現在的少，還原後會被蓋掉。</div>':'')+
+      '<div>還原後會蓋掉這台目前的進度。</div>');
+    panel.appendChild(cmp);
+    var go=el('button','btn main',behind?'我知道，還是還原':'確定還原');
+    var no=el('button','btn','取消');
+    var r3=el('div','bk-row');r3.appendChild(go);r3.appendChild(no);panel.appendChild(r3);
+    no.addEventListener('click',function(){panel.innerHTML=''});
+    go.addEventListener('click',function(){
+      save=r.data;persist();syncSound();closeModal();goMap();renderScore(false);
+    });
+  });
+
+  var done=el('div','bk-row');var bClose=el('button','btn full','完成');
+  bClose.addEventListener('click',function(){closeModal();if(view==='map')goMap()});
+  done.appendChild(bClose);c.appendChild(done);
+}
 
 function lessonClear(L){
   sfxFanfare();confetti(140);
