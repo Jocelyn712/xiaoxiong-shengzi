@@ -630,8 +630,12 @@ var CHECKS=[
 ];
 var HEARTS=3;
 /* 蜂蜜商店：用蜂蜜邀請森林朋友，朋友會住進地圖，也可以換牠走小路 */
-var FRIENDS=[['🐰','小兔子',30],['🐿️','小松鼠',40],['🐸','小青蛙',50],['🐼','熊貓',80],['🦊','狐狸',80],
-  ['🐨','無尾熊',100],['🦉','貓頭鷹',100],['🦌','小鹿',120],['🐯','老虎',150],['🦄','獨角獸',200]];
+/* 依價格排。舊的 10 位價格不變（存檔記的是 emoji，改價格不影響已邀請的朋友）；
+   新的 10 位有便宜的讓小朋友馬上換得到，也有 300、400 的當長期目標 */
+var FRIENDS=[['🐰','小兔子',30],['🐿️','小松鼠',40],['🐸','小青蛙',50],['🐢','小烏龜',60],['🦔','刺蝟',70],
+  ['🐼','熊貓',80],['🦊','狐狸',80],['🐹','倉鼠',90],['🐨','無尾熊',100],['🦉','貓頭鷹',100],
+  ['🦆','小鴨子',110],['🦌','小鹿',120],['🐧','企鵝',130],['🐯','老虎',150],['🦦','水獺',160],
+  ['🦥','樹懶',180],['🦄','獨角獸',200],['🐘','大象',220],['🦁','獅子',300],['🐉','小龍',400]];
 var CN=['零','一','二','三','四','五','六','七','八','九','十','十一','十二'];
 
 /* ---------- 小工具 ---------- */
@@ -847,10 +851,26 @@ function worldMap(){
   /* 風景放在站點的另一側；邀請來的森林朋友先住進去 */
   var deco=['🌲','🌳','🌼','🍄','🪨','🌿','🌷','🌲','🦋','🌳'],spots=[[16,H-12],[84,H-10]];
   stops.forEach(function(s){if(s.L)spots.push([s.x<50?86:13,s.y+4])});
-  spots.push([15,12],[86,16]);
+  spots.push([15,12],[26,28]);   /* 第二個原本在 [86,16]，會壓到大考驗的標籤（城堡標籤在右邊） */
   spots.forEach(function(p,i){
     var f=save.friends[i];
     w.appendChild(el('span','deco'+(f?' friend':''),f||deco[i%deco.length])).style.cssText=pos(p[0],p[1],H)+(f?';animation-delay:-'+(i*.37).toFixed(2)+'s':'');
+  });
+  /* 第 11 位以後的朋友：住在小路空檔的最外側、小考驗城堡左側、左上角。
+     沒住人的位置不顯示任何東西，所以朋友少的時候地圖樣子跟原本一樣。
+     空檔放在「上面那一站的朋友」的另一側，避免擠在一起；課名標籤都在中間，不會被擋到 */
+  var line=[{x:50,y:start[1]}].concat(stops),extra=[];
+  for(var g=1;g<line.length;g++){
+    var lo=line[g-1],up=line[g],busy=up.L?(up.x<50?86:13):(lo.L?(lo.x<50?86:13):86);
+    var x=busy>50?7:93,y=(lo.y+up.y)/2;
+    if(up.cp&&x>50)y=up.y+20;   /* 城堡標籤在右邊，窄螢幕會換行變高，右側的空位往下挪避開 */
+    extra.push([x,y]);
+  }
+  stops.forEach(function(s){if(s.cp&&s.cp.id!=='final')extra.push([26,s.y+4])});   /* 城堡標籤在右邊，朋友住左邊 */
+  extra.push([6,26]);
+  extra.forEach(function(p,j){
+    var k=spots.length+j,f=save.friends[k];
+    if(f)w.appendChild(el('span','deco friend',f)).style.cssText=pos(p[0],p[1],H)+';animation-delay:-'+(k*.37).toFixed(2)+'s';
   });
   stops.forEach(function(s,i){if(s.L)w.appendChild(el('span','deco',deco[(i+5)%deco.length])).style.cssText=pos(s.x<50?74:25,s.y+13,H)+';font-size:calc(var(--u)*5)'});
 
@@ -1466,7 +1486,7 @@ function goShop(){
     var b=el('button','btn'+(own&&!using?' main':''));
     if(using){b.textContent='陪你冒險中 ✓';b.disabled=true}
     else if(own){b.textContent='換牠走小路';b.addEventListener('click',function(){save.walker=e;persist();sfxGood();goShop()})}
-    else if(short>0){b.textContent='還差 '+short+' 🍯';b.disabled=true}
+    else if(short>0){b.textContent='🍯 '+f[2];b.disabled=true}   /* 只標價格，不顯示還差幾罐 */
     else{
       b.textContent='🍯 '+f[2]+' 邀請';
       b.addEventListener('click',function(){
